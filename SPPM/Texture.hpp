@@ -14,19 +14,19 @@
 #include "Vector.hpp"
 
 class Texture {
-    Vector** image;
+    Vec3d** image;
     int width, height;
 public:
     Texture(char *filename) {
         import(filename);
     }
     void import(char *filename);
-    Vector query(double x, double y);
+    Vec3d query(double x, double y);
 };
 
 class TextureMapper {
     Texture *texture;
-    Vector color;
+    Vec3d color;
     double xx, xy, xz, xb, yx, yy, yz, yb;
 public:
     TextureMapper(Texture *texture, double xx, double xy, double xz, double xb, double yx, double yy, double yz, double yb) {
@@ -40,11 +40,11 @@ public:
         this->yz = yz;
         this->yb = yb;
     }
-    TextureMapper(Vector color) {
+    TextureMapper(Vec3d color) {
         this->texture = nullptr;
         this->color = color;
     }
-    Vector query(Vector p);
+    Vec3d query(Vec3d p);
 };
 
 

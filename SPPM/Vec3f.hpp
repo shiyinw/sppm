@@ -83,7 +83,6 @@ public:
         struct
         { float r,g,b; };
     };
-    enum {_len = 3};
     
 };
 

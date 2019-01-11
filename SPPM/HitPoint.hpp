@@ -18,15 +18,15 @@ using namespace std;
 
 class HitPoint {
 public:
-    Vector p;
-    Vector weight, flux, fluxLight;
-    Vector d, norm;
+    Vec3d p;
+    Vec3d weight, flux, fluxLight;
+    Vec3d d, norm;
     int n;
     BRDF brdf;
     double r2;
     bool valid;
     HitPoint() {
-        flux = fluxLight = Vector(0, 0, 0);
+        flux = fluxLight = Vec3d(0, 0, 0);
         r2 = RADIUS;
         n = 0;
         valid = false;
@@ -36,7 +36,7 @@ public:
 class HitPointKDTreeNode {
 public:
     HitPoint *hitpoint;
-    Vector min, max;
+    Vec3d min, max;
     double maxr2;
     HitPointKDTreeNode *ls, *rs;
 };
@@ -50,7 +50,7 @@ public:
     HitPointKDTreeNode *root;
     HitPointKDTree(vector<HitPoint*>* hitpoints);
     ~HitPointKDTree();
-    void update(HitPointKDTreeNode *p, Vector photon, Vector weight, Vector d);
+    void update(HitPointKDTreeNode *p, Vec3d photon, Vec3d weight, Vec3d d);
 };
 
 bool cmpHitPointX(HitPoint *a, HitPoint *b);

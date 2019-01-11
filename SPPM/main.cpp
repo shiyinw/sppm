@@ -19,28 +19,28 @@ Object* genWalls() {
     Texture *textureBack = new Texture((char*)"objects/back.ppm");
     Texture *textureTop = new Texture((char*)"objects/top.ppm");
     
-    TextureMapper *color_back = new TextureMapper(Vector(1, 1, 1));
-    TextureMapper *color_front = new TextureMapper(Vector(0.8, 0.2, 0.2));
-    TextureMapper *color_left = new TextureMapper(Vector(0.2, 0.5, 0.8));
-    TextureMapper *color_right = new TextureMapper(Vector(0.2, 0.8, 0.5));
+    TextureMapper *color_back = new TextureMapper(Vec3d(1, 1, 1));
+    TextureMapper *color_front = new TextureMapper(Vec3d(0.8, 0.2, 0.2));
+    TextureMapper *color_left = new TextureMapper(Vec3d(0.2, 0.5, 0.8));
+    TextureMapper *color_right = new TextureMapper(Vec3d(0.2, 0.8, 0.5));
     
     Object *walls = new Object;
     walls->numVertexes = 8;
     walls->numFaces = 12;
-    walls->vertexes = new Vector*[walls->numVertexes]{
-        new Vector(-1.2, 1, -2.5),
-        new Vector(-1.2, 1, 1.5),
-        new Vector(1.2, 1, 1.5),
-        new Vector(1.2, 1, -2.5),
-        new Vector(-1.2, -1, -2.5),
-        new Vector(-1.2, -1, 1.5),
-        new Vector(1.2, -1, 1.5),
-        new Vector(1.2, -1, -2.5)
+    walls->vertexes = new Vec3d*[walls->numVertexes]{
+        new Vec3d(-1.2, 1, -2.5),
+        new Vec3d(-1.2, 1, 1.5),
+        new Vec3d(1.2, 1, 1.5),
+        new Vec3d(1.2, 1, -2.5),
+        new Vec3d(-1.2, -1, -2.5),
+        new Vec3d(-1.2, -1, 1.5),
+        new Vec3d(1.2, -1, 1.5),
+        new Vec3d(1.2, -1, -2.5)
     };
     for (int i = 0; i < walls->numVertexes; ++i)
         *walls->vertexes[i] = *walls->vertexes[i] * 0.5;
-    Vector** vertexes = walls->vertexes;
-    walls->faces = new Face*[walls->numFaces]{
+    Vec3d** vertexes = walls->vertexes;
+    walls->meshes = new Mesh*[walls->numFaces]{
         // back
         new TriangularFace(vertexes[1], vertexes[2], vertexes[5], new TextureMapper(textureBack, 0, -1, 0, 0.5, 1/1.2, 0, 0, 0.5), MARBLE),
         new TriangularFace(vertexes[2], vertexes[5], vertexes[6], new TextureMapper(textureBack, 0, -1, 0, 0.5, 1/1.2, 0, 0, 0.5), MARBLE),
@@ -65,45 +65,39 @@ Object* genWalls() {
 
 Object* genDesk() {
     
-    TextureMapper *color = new TextureMapper(Vector(1, 1, 1));
+    TextureMapper *color = new TextureMapper(Vec3d(1, 1, 1));
     
     Object *desk = new Object;
     desk->numVertexes = 4;
     desk->numFaces = 2;
     const double theta = 45 / 180. * M_PI;
-    desk->vertexes = new Vector*[desk->numVertexes]{
-        new Vector(-10, 0 - 10 * sin(theta), -10 * cos(theta)),
-        new Vector(-10, 0 + 10 * sin(theta), 10 * cos(theta)),
-        new Vector(10, 0 + 10 * sin(theta), 10 *  cos(theta)),
-        new Vector(10, 0 - 10 * sin(theta), -10 * cos(theta))
+    desk->vertexes = new Vec3d*[desk->numVertexes]{
+        new Vec3d(-10, 0 - 10 * sin(theta), -10 * cos(theta)),
+        new Vec3d(-10, 0 + 10 * sin(theta), 10 * cos(theta)),
+        new Vec3d(10, 0 + 10 * sin(theta), 10 *  cos(theta)),
+        new Vec3d(10, 0 - 10 * sin(theta), -10 * cos(theta))
     };
-    Vector** vertexes = desk->vertexes;
-    desk->faces = new Face*[desk->numFaces]{
+    Vec3d** vertexes = desk->vertexes;
+    desk->meshes = new Mesh*[desk->numFaces]{
         // bottom
-        new TriangularFace(
-                           vertexes[0], vertexes[1], vertexes[2],
-                           color, DESK
-                           ),
-        new TriangularFace(
-                           vertexes[0], vertexes[2], vertexes[3],
-                           color, DESK
-                           ),
+        new TriangularFace(vertexes[0], vertexes[1], vertexes[2], color, DESK),
+        new TriangularFace(vertexes[0], vertexes[2], vertexes[3], color, DESK),
     };
     return desk;
 }
 
-Object* genLight(Vector p, double r) {
+Object* genLight(Vec3d p, double r) {
     Object *light = new Object;
     light->numFaces = 1;
-    light->faces = new Face*[1]{
-        new DiscFace(p, r, new TextureMapper(Vector(1, 1, 1)), LIGHT)
+    light->meshes = new Mesh*[1]{
+        new DiscFace(p, r, new TextureMapper(Vec3d(1, 1, 1)), LIGHT)
     };
     return light;
 }
 
 Scene *sceneBox() {
     Object *bunny = new Object;
-    bunny->importPly((char*)"objects/bunny.ply",  new TextureMapper(Vector(0.4, 0.8, 0.8)), STANFORD_MODEL);
+    bunny->importPly((char*)"objects/bunny.ply",  new TextureMapper(Vec3d(0.4, 0.8, 0.8)), STANFORD_MODEL);
     
     bunny->scale(2.8, 0, 0, 0.24,
                  0, 2.8, 0, -0.09 - 0.5,
@@ -113,22 +107,22 @@ Scene *sceneBox() {
     bunny->center->print();
     
     Object *water = new Object;
-    water->importPly((char*)"objects/water.ply",  new TextureMapper(Vector(1, 1, 1)), WATER);
+    water->importPly((char*)"objects/water.ply",  new TextureMapper(Vec3d(1, 1, 1)), WATER);
     water->scale(
                  1. / 5.52799 * 1.2, 0, 0, -0.6,
                  0, 0.12 / (1.85354 - 1.34492), 0, -0.31731 + 0.08,
                  0, 0, 1.2 / (5.59200 + 0.00456), -1.19902 + 0.75
                  );
-    water->center = new Vector(0, -1, 0);
+    water->center = new Vec3d(0, -1, 0);
     water->printBox();
     
-    Scene *scene = new Scene(Vector(0.0, 0.5 - 1e-5, 0.1), 0.2, Vector(0, -1, 0));
+    Scene *scene = new Scene(Vec3d(0.0, 0.5 - 1e-5, 0.1), 0.2, Vec3d(0, -1, 0));
     scene->addObject(bunny);
     scene->addObject(water);
     scene->addObject(genWalls());
-    scene->addObject(genLight(Vector(0, 0.5 - EPSILON, 0.1), 0.2));
-    scene->addObject(new Sphere(Vector(-0.32, -0.30, 0.3), 0.18, new TextureMapper(Vector(1, 1, 1)), GLASS));
-    scene->addObject(new Sphere(Vector(0.42, 0.20, 0), 0.15, new TextureMapper(Vector(1, 1, 1)), MIRROR));
+    scene->addObject(genLight(Vec3d(0, 0.5 - EPSILON, 0.1), 0.2));
+    scene->addObject(new Sphere(Vec3d(-0.32, -0.30, 0.3), 0.18, new TextureMapper(Vec3d(1, 1, 1)), GLASS));
+    scene->addObject(new Sphere(Vec3d(0.42, 0.20, 0), 0.15, new TextureMapper(Vec3d(1, 1, 1)), MIRROR));
     return scene;
 }
 
@@ -137,9 +131,13 @@ int main(int argc, char *argv[]) {
     Scene *scene = sceneBox();
     //Scene *scene = sceneTeapot();
     
-    SPPM *camera = new SPPM(1024, 768, scene, Vector(0, 0.15, -1));
+    SPPM *camera = new SPPM(1024, 768, scene, Vec3d(0, 0.15, -1));
     camera->setLens(0.684, 0.811, 1e-3, 1 + 0.09);
-    camera -> render(10, 200000);
+    
+    
+    //camera->load((char*)"checkpoints/checkpoint-10.ppm");
+    
+    camera -> render(2500, 200000);
     
     // 2500, 200000
     

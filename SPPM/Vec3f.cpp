@@ -11,7 +11,7 @@ std::ostream &operator <<(std::ostream &os, Vec3f const &v) {
 //  Constructors and Deconstructors
 Vec3f::Vec3f(void)
 {
-    memset(_p,0,sizeof(float)*_len);
+    memset(_p,0,sizeof(float)*3);
 }
 
 Vec3f::Vec3f(float x, float y, float z)
@@ -23,7 +23,7 @@ Vec3f::Vec3f(float x, float y, float z)
 
 Vec3f::Vec3f(const Vec3f &v)
 {
-    memcpy(_p,v._p,sizeof(float)*_len);
+    memcpy(_p,v._p,sizeof(float)*3);
 }
 
 Vec3f::~Vec3f(void)
@@ -36,65 +36,65 @@ Vec3f::~Vec3f(void)
 
 Vec3f& Vec3f::operator =( const Vec3f& v)
 {
-    memcpy(_p,v._p,sizeof(float)*_len);
+    memcpy(_p,v._p,sizeof(float)*3);
     return (*this);
 }
 
 void Vec3f::operator +=(const Vec3f& v)
 {
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         _p[i] += v._p[i];
 }
 void Vec3f::operator +=(float f)
 {
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         _p[i] += f;
 }
 
 void Vec3f::operator -=(const Vec3f& v)
 {
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         _p[i] -= v._p[i];
 }
 void Vec3f::operator -=(float f)
 {
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         _p[i] -= f;
 }
 
 void Vec3f::operator *=(const Vec3f& v)
 {
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         _p[i] *= v._p[i];
 }
 void Vec3f::operator *=(float f)
 {
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         _p[i] *= f;
 }
 
 void Vec3f::operator /=(const Vec3f& v)
 {
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         _p[i] /= v._p[i];
 }
 void Vec3f::operator /=(float f)
 {
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         _p[i] /= f;
 }
 
 Vec3f Vec3f::operator +(const Vec3f&v) const
 {
     Vec3f res;
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         res[i] = (*this)[i] + v[i];
     return res;
 }
 Vec3f Vec3f::operator +(float f) const
 {
     Vec3f res;
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         res[i] = (*this)[i] + f;
     return res;
 }
@@ -102,14 +102,14 @@ Vec3f Vec3f::operator +(float f) const
 Vec3f Vec3f::operator -(const Vec3f&v) const
 {
     Vec3f res;
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         res[i] = (*this)[i] - v[i];
     return res;
 }
 Vec3f Vec3f::operator -(float f) const
 {
     Vec3f res;
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         res[i] = (*this)[i] - f;
     return res;
 }
@@ -117,14 +117,14 @@ Vec3f Vec3f::operator -(float f) const
 Vec3f Vec3f::operator *(const Vec3f&v) const
 {
     Vec3f res;
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         res[i] = (*this)[i] * v[i];
     return res;
 }
 Vec3f Vec3f::operator *(float f) const
 {
     Vec3f res;
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         res[i] = (*this)[i] * f;
     return res;
 }
@@ -132,14 +132,14 @@ Vec3f Vec3f::operator *(float f) const
 Vec3f Vec3f::operator /(const Vec3f&v) const
 {
     Vec3f res;
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         res[i] = (*this)[i] / v[i];
     return res;
 }
 Vec3f Vec3f::operator /(float f) const
 {
     Vec3f res;
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         res[i] = (*this)[i] / f;
     return res;
 }
@@ -147,7 +147,7 @@ Vec3f Vec3f::operator /(float f) const
 Vec3f Vec3f::operator - () const
 {
     Vec3f res;
-    for(int i=0;i<_len;i++)
+    for(int i=0;i<3;i++)
         res[i] = -(*this)[i];
     return res;
 }

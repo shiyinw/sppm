@@ -15,9 +15,9 @@
 
 class Ray {
 public:
-    Vector s;
-    Vector d;
-    Ray(Vector s, Vector d) {
+    Vec3d s; //source
+    Vec3d d; //direction
+    Ray(Vec3d s, Vec3d d) {
         this->s = s;
         this->d = d / sqrt(d.norm2());
     }

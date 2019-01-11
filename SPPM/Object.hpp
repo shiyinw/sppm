@@ -19,116 +19,115 @@ using namespace std;
 
 class Object;
 
-class Face {
+class Mesh {
 public:
     Object *object;
     TextureMapper *texture;
     int brdf;
-    virtual Vector min() = 0;
-    virtual Vector max() = 0;
-    virtual Vector center() = 0;
+    virtual Vec3d min() = 0;
+    virtual Vec3d max() = 0;
+    virtual Vec3d center() = 0;
     virtual void scale(
                        double fxx, double fxy, double fxz, double fxb,
                        double fyx, double fyy, double fyz, double fyb,
                        double fzx, double fzy, double fzz, double fzb
                        ) = 0;
-    virtual pair<double, Vector> intersect(Ray ray) = 0;
+    virtual pair<double, Vec3d> intersect(Ray ray) = 0;
 };
 
 enum { TRIANGULAR_FACE, SPHERE_FACE, BEZIER_FACE } FACE_TYPES;
 
-class TriangularFace : public Face {
+class TriangularFace : public Mesh {
 public:
-    Vector *a, *b, *c;
-    TriangularFace(Vector *a, Vector *b, Vector *c, TextureMapper *texture = nullptr, int brdf = 0) {
+    Vec3d *a, *b, *c;
+    TriangularFace(Vec3d *a, Vec3d *b, Vec3d *c, TextureMapper *texture = nullptr, int brdf = 0) {
         this->a = a;
         this->b = b;
         this->c = c;
         this->texture = texture;
         this->brdf = brdf;
     }
-    Vector min();
-    Vector max();
-    Vector center();
+    Vec3d min();
+    Vec3d max();
+    Vec3d center();
     void scale(
                double fxx, double fxy, double fxz, double fxb,
                double fyx, double fyy, double fyz, double fyb,
                double fzx, double fzy, double fzz, double fzb
                ){}
-    pair<double, Vector> intersect(Ray ray);
+    pair<double, Vec3d> intersect(Ray ray);
     double intersectPlane(Ray ray);
 };
 
-class SphereFace : public Face {
+class SphereFace : public Mesh {
 public:
-    Vector c;
+    Vec3d c;
     double r;
-    SphereFace(Vector c, double r, TextureMapper *texture, int brdf) {
+    SphereFace(Vec3d c, double r, TextureMapper *texture, int brdf) {
         this->c = c;
         this->r = r;
         this->texture = texture;
         this->brdf = brdf;
     }
-    Vector min();
-    Vector max();
-    Vector center();
+    Vec3d min();
+    Vec3d max();
+    Vec3d center();
     void scale(
                double fxx, double fxy, double fxz, double fxb,
                double fyx, double fyy, double fyz, double fyb,
                double fzx, double fzy, double fzz, double fzb
                ){}
-    pair<double, Vector> intersect(Ray ray);
+    pair<double, Vec3d> intersect(Ray ray);
 };
 
-class DiscFace : public Face {
+class DiscFace : public Mesh {
 public:
-    Vector c;
+    Vec3d c;
     double r;
-    DiscFace(Vector c, double r, TextureMapper *texture, int brdf) {
+    DiscFace(Vec3d c, double r, TextureMapper *texture, int brdf) {
         this->c = c;
         this->r = r;
         this->texture = texture;
         this->brdf = brdf;
     }
-    Vector min();
-    Vector max();
-    Vector center();
+    Vec3d min();
+    Vec3d max();
+    Vec3d center();
     void scale(
                double fxx, double fxy, double fxz, double fxb,
                double fyx, double fyy, double fyz, double fyb,
                double fzx, double fzy, double fzz, double fzb
                ){}
-    pair<double, Vector> intersect(Ray ray);
+    pair<double, Vec3d> intersect(Ray ray);
 };
 
-class BezierFace : public Face {
+class BezierFace : public Mesh {
     int **binom;
-    Vector P(double u, double v);
+    Vec3d P(double u, double v);
     double B(int n, int k, double u);
     double dB(int n, int k, double u);
-    Vector F(Vector x, Ray ray);
-    Vector d(Vector x, Ray ray);
+    Vec3d F(Vec3d x, Ray ray);
+    Vec3d d(Vec3d x, Ray ray);
 public:
     int n, m;
-    Vector **p, m_min, m_max, m_center;
-    BezierFace(int n, int m, Vector **p, TextureMapper *texture, int brdf);
-    Vector min();
-    Vector max();
-    Vector center();
-    void scale(
-               double fxx, double fxy, double fxz, double fxb,
+    Vec3d **p, m_min, m_max, m_center;
+    BezierFace(int n, int m, Vec3d **p, TextureMapper *texture, int brdf);
+    Vec3d min();
+    Vec3d max();
+    Vec3d center();
+    void scale(double fxx, double fxy, double fxz, double fxb,
                double fyx, double fyy, double fyz, double fyb,
                double fzx, double fzy, double fzz, double fzb
                );
-    pair<double, Vector> intersect(Ray ray);
+    pair<double, Vec3d> intersect(Ray ray);
     //Vector intersectNorm(Ray ray);
 };
 
 class Object {
 public:
-    Vector** vertexes;
-    Vector* center;
-    Face** faces;
+    Vec3d** vertexes;
+    Vec3d* center;
+    Mesh** meshes;
     int numVertexes, numFaces;
     Object() {
         center = nullptr;
@@ -136,8 +135,7 @@ public:
     void importPly(char *filename, TextureMapper *texture, int brdf);
     void calcCenter();
     void printBox();
-    void scale(
-               double fxx, double fxy, double fxz, double fxb,
+    void scale(double fxx, double fxy, double fxz, double fxb,
                double fyx, double fyy, double fyz, double fyb,
                double fzx, double fzy, double fzz, double fzb
                );
@@ -146,7 +144,7 @@ public:
 
 class Sphere : public Object {
 public:
-    Sphere(Vector c, double r, TextureMapper *texture, int brdf);
+    Sphere(Vec3d c, double r, TextureMapper *texture, int brdf);
 };
 
 

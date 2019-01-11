@@ -8,8 +8,12 @@
 
 #include "SPPM.hpp"
 #include "Scene.hpp"
+#include <iostream>
+#include <fstream>
+using namespace std;
 
 #define GAMMA 0.5
+#define BUFFER_SIZE 1024
 
 void SPPM::evaluateRadiance(int numRounds, int numPhotons) {
     for (int u = 0; u < w; ++u)
@@ -19,7 +23,8 @@ void SPPM::evaluateRadiance(int numRounds, int numPhotons) {
             canvas[u][v].x = pow(canvas[u][v].x, GAMMA);
             canvas[u][v].y = pow(canvas[u][v].y, GAMMA);
             canvas[u][v].z = pow(canvas[u][v].z, GAMMA);
-            canvas[u][v] = min(canvas[u][v], Vector(1, 1, 1));
+            canvas[u][v] = min(canvas[u][v], Vec3d(1, 1, 1));
+            canvas[u][v] = max(canvas[u][v], Vec3d(0, 0, 0));
         }
 }
 
@@ -28,7 +33,7 @@ void SPPM::render(int numRounds, int numPhotons) {
     
     int cx = w / 2, cy = h / 2;
     
-    TriangularFace focusPlane(new Vector(0, 0, s.z + focus), new Vector(0, 1, s.z + focus), new Vector(1, 0, s.z + focus));
+    TriangularFace focusPlane(new Vec3d(0, 0, s.z + focus), new Vec3d(0, 1, s.z + focus), new Vec3d(1, 0, s.z + focus));
     
     // initialize hitpoints
     hitpoints = new vector<HitPoint*>;
@@ -36,30 +41,31 @@ void SPPM::render(int numRounds, int numPhotons) {
         for (int v = 0; v < h; ++v)
             hitpoints->push_back(new HitPoint);
     
-    light = Vector(1, 1, 1);
-    const Vector weight_init = Vector(2.5, 2.5, 2.5);
+    light = Vec3d(1, 1, 1);
+    const Vec3d weight_init = Vec3d(2.5, 2.5, 2.5);
     
     // SPPM
     for (int round = 0; round < numRounds; ++round) {
         fprintf(stderr, "Round %d/%d:\n", round + 1, numRounds);
         
         // ray tracing pass
+        cout<<"Start Ray Tracing......"<<endl;
         for (int u = 0; u < w; ++u) {
             if(u%100==0){
-                fprintf(stderr, "Ray tracing pass %d/%d\n", u, w);
+                cout<<"Ray tracing pass "<<u<<"/"<<w<<endl;
             }
             for (int v = 0; v < h; ++v) {
-                Vector p(double(u - cx) / w / fx, double(v - cy) / h / fy, 0);
+                Vec3d p(double(u - cx) / w / fx, double(v - cy) / h / fy, 0);
                 Ray ray(s, p - s);
                 double t = focusPlane.intersectPlane(ray);
-                Vector focusP = ray.s + ray.d * t;
+                Vec3d focusP = ray.s + ray.d * t;
                 double theta = Utils::random(0, 2 * M_PI);
-                ray.s = ray.s + Vector(cos(theta), sin(theta), 0) * aperture;
+                ray.s = ray.s + Vec3d(cos(theta), sin(theta), 0) * aperture;
                 ray.d = focusP - ray.s;
                 ray.d.normalize();
                 (*hitpoints)[u * h + v]->valid = false;
                 (*hitpoints)[u * h + v]->d = ray.d * -1;
-                scene->trace(ray, Vector(1, 1, 1), 1, (long long)round * (numPhotons + w * h) + u * h + v, (*hitpoints)[u * h + v]);
+                scene->trace(ray, Vec3d(1, 1, 1), 1, (long long)round * (numPhotons + w * h) + u * h + v, (*hitpoints)[u * h + v]);
             }
         }
         
@@ -72,10 +78,11 @@ void SPPM::render(int numRounds, int numPhotons) {
         }
         fprintf(stderr, "\rPhoton tracing pass done\n");
         
-        if ((round+1)%10==0) {
+        // save checkpoints
+        if ((round+1)%1==0) {
             evaluateRadiance(round + 1, numPhotons);
             char filename[100];
-            sprintf(filename, "checkpoint-%d.ppm", round + 1);
+            sprintf(filename, "checkpoints/checkpoint-%d.ppm", round + 1);
             save(filename);
         }
     }
@@ -94,13 +101,53 @@ void SPPM::save(char *filename) {
     fprintf(stderr, "Image saved to %s\n", filename);
 }
 
-SPPM::SPPM(int w, int h, Scene *scene, Vector s) {
+void SPPM::load(char *filename) {
+//    FILE *file = fopen(filename, "r");
+//    char buffer[BUFFER_SIZE];
+//    int weight, height;
+//    fgets(buffer, BUFFER_SIZE, file);
+//    fgets(buffer, BUFFER_SIZE, file);
+//    assert(string(buffer)==std::to_string(w)+" "+std::to_string(h)+"\n");
+//    fgets(buffer, BUFFER_SIZE, file);
+//    assert(string(buffer)=="255\n");
+//    fgets(buffer, BUFFER_SIZE, file);
+//    cout<<buffer<<endl;
+    
+    ifstream inFile;
+    inFile.open(filename);
+    if (!inFile) {
+        cout << "Unable to open file";
+        exit(1); // terminate with error
+    }
+    string r, g, b;
+    inFile>>r;
+    assert(r=="P3");
+    inFile>>r;
+    assert(r==to_string(w));
+    inFile>>r;
+    assert(r==to_string(h));
+    inFile>>r;
+    assert(r=="255");
+    
+    for (int i = 0; i < h; ++i) {
+        for (int j = 0; j < w; ++j){
+            inFile>>r>>g>>b;
+            canvas[j][h - i - 1].x = stoi(r)/255;
+            canvas[j][h - i - 1].y = stoi(g)/255;
+            canvas[j][h - i - 1].z = stoi(b)/255;
+        }
+    }
+    
+    inFile.close();
+}
+
+SPPM::SPPM(int w, int h, Scene *scene, Vec3d s) {
     this->w = w;
     this->h = h;
     this->scene = scene;
     this->s = s;
     
-    canvas = new Vector*[w];
+    canvas = new Vec3d*[w];
     for (int i = 0; i < w; ++i)
-        canvas[i] = new Vector[h];
+        canvas[i] = new Vec3d[h];
 }

@@ -12,7 +12,7 @@
 
 HitPointKDTreeNode* HitPointKDTree::build(int l, int r, int d) {
     HitPointKDTreeNode *p = new HitPointKDTreeNode;
-    p->min = Vector(1e100, 1e100, 1e100);
+    p->min = Vec3d(1e100, 1e100, 1e100);
     p->max = p->min * (-1);
     p->maxr2 = 0;
     for (int i = l; i <= r; ++i) {
@@ -53,20 +53,20 @@ HitPointKDTree::~HitPointKDTree() {
     delete[] hitpoints;
 }
 
-void HitPointKDTree::update(HitPointKDTreeNode * p, Vector photon, Vector weight, Vector d) {
+void HitPointKDTree::update(HitPointKDTreeNode * p, Vec3d photon, Vec3d weight, Vec3d d) {
     if (!p) return;
     double mind = 0, maxd = 0;
-    if (photon.x > p->max.x) mind += sqr(photon.x - p->max.x);
-    if (photon.x < p->min.x) mind += sqr(p->min.x - photon.x);
-    if (photon.y > p->max.y) mind += sqr(photon.y - p->max.y);
-    if (photon.y < p->min.y) mind += sqr(p->min.y - photon.y);
-    if (photon.z > p->max.z) mind += sqr(photon.z - p->max.z);
-    if (photon.z < p->min.z) mind += sqr(p->min.z - photon.z);
+    if (photon.x > p->max.x) mind += (photon.x - p->max.x)*(photon.x - p->max.x);
+    if (photon.x < p->min.x) mind += (p->min.x - photon.x)*(p->min.x - photon.x);
+    if (photon.y > p->max.y) mind += (photon.y - p->max.y)*(photon.y - p->max.y);
+    if (photon.y < p->min.y) mind += (p->min.y - photon.y)*(p->min.y - photon.y);
+    if (photon.z > p->max.z) mind += (photon.z - p->max.z)*(photon.z - p->max.z);
+    if (photon.z < p->min.z) mind += (p->min.z - photon.z)*(p->min.z - photon.z);
     if (mind > p->maxr2) return;
     if (p->hitpoint->valid && (photon - p->hitpoint->p).norm2() <= p->hitpoint->r2) {
         HitPoint *hp = p->hitpoint;
         double factor = (hp->n * ALPHA + ALPHA) / (hp->n * ALPHA + 1.);
-        Vector dr = d - hp->norm * (2 * dot(d, hp->norm));
+        Vec3d dr = d - hp->norm * (2 * dot(d, hp->norm));
         double rho = hp->brdf.rho_d + hp->brdf.rho_s * pow(dot(dr, hp->d), hp->brdf.phong_s);
         if (rho < 0) rho = 0;
         else if (rho > 1) rho = 1;

@@ -16,24 +16,24 @@
 
 class ObjectKDTreeNode {
 public:
-    Vector min, max;
-    vector<Face*>* faces;
+    Vec3d min, max;
+    vector<Mesh*>* meshes;
     ObjectKDTreeNode *ls, *rs;
     int l, r;
-    bool inside(Face *face);
+    bool inside(Mesh *mesh);
 };
 
 class ObjectKDTree {
     int n;
-    Vector** vertexes;
-    ObjectKDTreeNode* build(int depth, int d, vector<Face*>* faces, Vector min, Vector max);
-    void getFaces(ObjectKDTreeNode *p, vector<Face*>* faces);
+    Vec3d** vertexes;
+    ObjectKDTreeNode* build(int depth, int d, vector<Mesh*>* meshes, Vec3d min, Vec3d max);
+    void getFaces(ObjectKDTreeNode *p, vector<Mesh*>* meshes);
 public:
     ObjectKDTreeNode* root;
-    vector<Face*> *faces;
-    ObjectKDTree(vector<Face*>* faces);
+    vector<Mesh*> *meshes;
+    ObjectKDTree(vector<Mesh*>* meshes);
     double getCuboidIntersection(ObjectKDTreeNode *p, Ray ray);
-    void getIntersection(ObjectKDTreeNode *p, Ray ray, Face* &nextFace, double &tMin, Vector &norm);
+    void getIntersection(ObjectKDTreeNode *p, Ray ray, Mesh* &nextMesh, double &tMin, Vec3d &norm);
 };
 
 class Scene {
@@ -41,15 +41,15 @@ class Scene {
     vector<HitPoint*> hitpoints;
     HitPointKDTree *hitpointsKDTree;
     ObjectKDTree *objectKDTree;
-    Vector sourceP, sourceN;
+    Vec3d sourceP, sourceN;
     double sourceR;
-    Vector sampleReflectedRay(Vector norm, int depth, long long i, double s = 1);
+    Vec3d sampleReflectedRay(Vec3d norm, int depth, long long i, double s = 1);
 public:
     void addObject(Object* object);
-    Scene(Vector _sourceP, double _sourceR, Vector _sourceN) :
+    Scene(Vec3d _sourceP, double _sourceR, Vec3d _sourceN) :
     sourceP(_sourceP), sourceR(_sourceR), sourceN(_sourceN) { hitpointsKDTree = nullptr; }
     Ray generateRay(long long i);
-    void trace(const Ray &ray, const Vector &weight, int depth, long long i, HitPoint *hp = nullptr);
+    void trace(const Ray &ray, const Vec3d &weight, int depth, long long i, HitPoint *hp = nullptr);
     void initializeHitpointKDTree(vector<HitPoint*>* hitpoints);
     void initializeObjectKDTree();
 };

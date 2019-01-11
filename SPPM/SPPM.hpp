@@ -16,13 +16,13 @@
 class SPPM {
     int w, h;
     double fx, fy, aperture, focus;
-    Vector **canvas, light;
+    Vec3d **canvas, light;
     Scene* scene;
-    Vector s;
+    Vec3d s;
     vector<HitPoint*> *hitpoints;
     void evaluateRadiance(int numRounds, int numPhotons);
 public:
-    SPPM(int w, int h, Scene *scene, Vector s);
+    SPPM(int w, int h, Scene *scene, Vec3d s);
     void setLens(double fx, double fy, double aperture, double focus) {
         this->fx = fx;
         this->fy = fy;
@@ -31,6 +31,7 @@ public:
     }
     void render(int numRounds, int numPhotons = 20480);
     void save(char *filename);
+    void load(char *filename);
 };
 
 

@@ -11,28 +11,28 @@
 void Texture::import(char *filename) {
     FILE *file = fopen(filename, "r");
     fscanf(file, "%*s%d%d%*d", &width, &height);
-    image = new Vector*[height];
+    image = new Vec3d*[height];
     for (int i = 0; i < height; ++i) {
-        image[i] = new Vector[width];
+        image[i] = new Vec3d[width];
         for (int j = 0; j < width; ++j) {
             int r, g, b;
             fscanf(file, "%d%d%d", &r, &g, &b);
-            image[i][j] = Vector(r / 255., g / 255., b / 255.);
+            image[i][j] = Vec3d(r / 255., g / 255., b / 255.);
         }
     }
     fclose(file);
 }
 
-Vector Texture::query(double x, double y) {
+Vec3d Texture::query(double x, double y) {
     int _x = x * height;
     int _y = y * width;
     if (_x >= 0 && _x < height && _y >= 0 && _y < width)
         return image[_x][_y];
     else
-        return Vector(0, 0, 0);
+        return Vec3d(0, 0, 0);
 }
 
-Vector TextureMapper::query(Vector p) {
+Vec3d TextureMapper::query(Vec3d p) {
     if (!texture)
         return color;
     double x = xx * p.x + xy * p.y + xz * p.z + xb;
