@@ -33,7 +33,7 @@ void SPPM::render(int numRounds, int numPhotons) {
     
     int cx = w / 2, cy = h / 2;
     
-    TriangularFace focusPlane(new Vec3d(0, 0, s.z + focus), new Vec3d(0, 1, s.z + focus), new Vec3d(1, 0, s.z + focus));
+    TriMesh focusPlane(new Vec3d(0, 0, s.z + focus), new Vec3d(0, 1, s.z + focus), new Vec3d(1, 0, s.z + focus));
     
     // initialize hitpoints
     hitpoints = new vector<HitPoint*>;

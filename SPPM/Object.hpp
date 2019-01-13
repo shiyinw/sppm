@@ -37,10 +37,10 @@ public:
 
 enum { TRIANGULAR_FACE, SPHERE_FACE, BEZIER_FACE } FACE_TYPES;
 
-class TriangularFace : public Mesh {
+class TriMesh : public Mesh {
 public:
     Vec3d *a, *b, *c;
-    TriangularFace(Vec3d *a, Vec3d *b, Vec3d *c, TextureMapper *texture = nullptr, int brdf = 0) {
+    TriMesh(Vec3d *a, Vec3d *b, Vec3d *c, TextureMapper *texture = nullptr, int brdf = 0) {
         this->a = a;
         this->b = b;
         this->c = c;
@@ -59,11 +59,11 @@ public:
     double intersectPlane(Ray ray);
 };
 
-class SphereFace : public Mesh {
+class SphereMesh : public Mesh {
 public:
     Vec3d c;
     double r;
-    SphereFace(Vec3d c, double r, TextureMapper *texture, int brdf) {
+    SphereMesh(Vec3d c, double r, TextureMapper *texture, int brdf) {
         this->c = c;
         this->r = r;
         this->texture = texture;
@@ -80,11 +80,11 @@ public:
     pair<double, Vec3d> intersect(Ray ray);
 };
 
-class DiscFace : public Mesh {
+class CircleMesh : public Mesh {
 public:
     Vec3d c;
     double r;
-    DiscFace(Vec3d c, double r, TextureMapper *texture, int brdf) {
+    CircleMesh(Vec3d c, double r, TextureMapper *texture, int brdf) {
         this->c = c;
         this->r = r;
         this->texture = texture;
@@ -99,28 +99,6 @@ public:
                double fzx, double fzy, double fzz, double fzb
                ){}
     pair<double, Vec3d> intersect(Ray ray);
-};
-
-class BezierFace : public Mesh {
-    int **binom;
-    Vec3d P(double u, double v);
-    double B(int n, int k, double u);
-    double dB(int n, int k, double u);
-    Vec3d F(Vec3d x, Ray ray);
-    Vec3d d(Vec3d x, Ray ray);
-public:
-    int n, m;
-    Vec3d **p, m_min, m_max, m_center;
-    BezierFace(int n, int m, Vec3d **p, TextureMapper *texture, int brdf);
-    Vec3d min();
-    Vec3d max();
-    Vec3d center();
-    void scale(double fxx, double fxy, double fxz, double fxb,
-               double fyx, double fyy, double fyz, double fyb,
-               double fzx, double fzy, double fzz, double fzb
-               );
-    pair<double, Vec3d> intersect(Ray ray);
-    //Vector intersectNorm(Ray ray);
 };
 
 class Object {

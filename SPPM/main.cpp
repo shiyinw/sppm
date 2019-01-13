@@ -42,23 +42,23 @@ Object* genWalls() {
     Vec3d** vertexes = walls->vertexes;
     walls->meshes = new Mesh*[walls->numFaces]{
         // back
-        new TriangularFace(vertexes[1], vertexes[2], vertexes[5], new TextureMapper(textureBack, 0, -1, 0, 0.5, 1/1.2, 0, 0, 0.5), MARBLE),
-        new TriangularFace(vertexes[2], vertexes[5], vertexes[6], new TextureMapper(textureBack, 0, -1, 0, 0.5, 1/1.2, 0, 0, 0.5), MARBLE),
+        new TriMesh(vertexes[1], vertexes[2], vertexes[5], new TextureMapper(textureBack, 0, -1, 0, 0.5, 1/1.2, 0, 0, 0.5), MARBLE),
+        new TriMesh(vertexes[2], vertexes[5], vertexes[6], new TextureMapper(textureBack, 0, -1, 0, 0.5, 1/1.2, 0, 0, 0.5), MARBLE),
         // top
-        new TriangularFace(vertexes[0], vertexes[1], vertexes[2], new TextureMapper(textureTop, 0, 0, 1./2, 2.5/4, 1./1.2, 0, 0, 0.5), DIFFUSE),
-        new TriangularFace(vertexes[0], vertexes[2], vertexes[3], new TextureMapper(textureTop, 0, 0, 1./2, 2.5/4, 1./1.2, 0, 0, 0.5), DIFFUSE),
+        new TriMesh(vertexes[0], vertexes[1], vertexes[2], new TextureMapper(textureTop, 0, 0, 1./2, 2.5/4, 1./1.2, 0, 0, 0.5), DIFFUSE),
+        new TriMesh(vertexes[0], vertexes[2], vertexes[3], new TextureMapper(textureTop, 0, 0, 1./2, 2.5/4, 1./1.2, 0, 0, 0.5), DIFFUSE),
         // bottom
-        new TriangularFace(vertexes[4], vertexes[5], vertexes[6], new TextureMapper(textureBottom, 0, 0, 1./2, 2.5/4, 1./1.2, 0, 0, 0.5), FLOOR),
-        new TriangularFace(vertexes[4], vertexes[6], vertexes[7], new TextureMapper(textureBottom, 0, 0, 1./2, 2.5/4, 1./1.2, 0, 0, 0.5), FLOOR),
+        new TriMesh(vertexes[4], vertexes[5], vertexes[6], new TextureMapper(textureBottom, 0, 0, 1./2, 2.5/4, 1./1.2, 0, 0, 0.5), FLOOR),
+        new TriMesh(vertexes[4], vertexes[6], vertexes[7], new TextureMapper(textureBottom, 0, 0, 1./2, 2.5/4, 1./1.2, 0, 0, 0.5), FLOOR),
         // left
-        new TriangularFace(vertexes[0], vertexes[1], vertexes[4], color_left, WALL),
-        new TriangularFace(vertexes[1], vertexes[4], vertexes[5], color_left, WALL),
+        new TriMesh(vertexes[0], vertexes[1], vertexes[4], color_left, WALL),
+        new TriMesh(vertexes[1], vertexes[4], vertexes[5], color_left, WALL),
         // right
-        new TriangularFace(vertexes[2], vertexes[3], vertexes[6], color_right, WALL),
-        new TriangularFace(vertexes[3], vertexes[6], vertexes[7], color_right, WALL),
+        new TriMesh(vertexes[2], vertexes[3], vertexes[6], color_right, WALL),
+        new TriMesh(vertexes[3], vertexes[6], vertexes[7], color_right, WALL),
         // front
-        new TriangularFace(vertexes[0], vertexes[4], vertexes[7], color_front, WALL),
-        new TriangularFace(vertexes[0], vertexes[3], vertexes[7], color_front, WALL),
+        new TriMesh(vertexes[0], vertexes[4], vertexes[7], color_front, WALL),
+        new TriMesh(vertexes[0], vertexes[3], vertexes[7], color_front, WALL),
     };
     return walls;
 }
@@ -80,8 +80,8 @@ Object* genDesk() {
     Vec3d** vertexes = desk->vertexes;
     desk->meshes = new Mesh*[desk->numFaces]{
         // bottom
-        new TriangularFace(vertexes[0], vertexes[1], vertexes[2], color, DESK),
-        new TriangularFace(vertexes[0], vertexes[2], vertexes[3], color, DESK),
+        new TriMesh(vertexes[0], vertexes[1], vertexes[2], color, DESK),
+        new TriMesh(vertexes[0], vertexes[2], vertexes[3], color, DESK),
     };
     return desk;
 }
@@ -90,7 +90,7 @@ Object* genLight(Vec3d p, double r) {
     Object *light = new Object;
     light->numFaces = 1;
     light->meshes = new Mesh*[1]{
-        new DiscFace(p, r, new TextureMapper(Vec3d(1, 1, 1)), LIGHT)
+        new CircleMesh(p, r, new TextureMapper(Vec3d(1, 1, 1)), LIGHT)
     };
     return light;
 }
