@@ -9,14 +9,12 @@
 /* Begin PBXBuildFile section */
 		8412D4EE21E59F5200183531 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8412D4EC21E59F5200183531 /* Object.cpp */; };
 		8454D85B21AABDD00045A126 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8454D85A21AABDD00045A126 /* main.cpp */; };
-		847E47C621E5CF190049F255 /* HitPoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 847E47C421E5CF190049F255 /* HitPoint.cpp */; };
 		847E47CC21E5CF9C0049F255 /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 847E47CA21E5CF9C0049F255 /* Scene.cpp */; };
 		847E47CF21E5CFCE0049F255 /* Texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 847E47CD21E5CFCE0049F255 /* Texture.cpp */; };
 		847E47D221E5CFFB0049F255 /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 847E47D021E5CFFB0049F255 /* Utils.cpp */; };
-		847E47D521E5D02B0049F255 /* Vector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 847E47D321E5D02B0049F255 /* Vector.cpp */; };
-		847E47E721E5FBF30049F255 /* Bézier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 847E47E221E5FBF20049F255 /* Bézier.cpp */; };
 		847E47E821E5FBF30049F255 /* SPPM.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 847E47E321E5FBF20049F255 /* SPPM.cpp */; };
-		84978BAA21E7853900FC4B7D /* Vec3f.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 84978BA921E7853900FC4B7D /* Vec3f.cpp */; };
+		8481D14621EB1AAE000793AF /* Vec3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8481D14521EB1AAE000793AF /* Vec3d.cpp */; };
+		8481D14921EB1AF4000793AF /* KDTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8481D14821EB1AF3000793AF /* KDTree.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -36,23 +34,20 @@
 		8412D4ED21E59F5200183531 /* Object.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Object.hpp; sourceTree = "<group>"; };
 		8454D85721AABDD00045A126 /* SPPM */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SPPM; sourceTree = BUILT_PRODUCTS_DIR; };
 		8454D85A21AABDD00045A126 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		847E47C421E5CF190049F255 /* HitPoint.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HitPoint.cpp; sourceTree = "<group>"; };
-		847E47C521E5CF190049F255 /* HitPoint.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = HitPoint.hpp; sourceTree = "<group>"; };
 		847E47CA21E5CF9C0049F255 /* Scene.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Scene.cpp; sourceTree = "<group>"; };
 		847E47CB21E5CF9C0049F255 /* Scene.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Scene.hpp; sourceTree = "<group>"; };
 		847E47CD21E5CFCE0049F255 /* Texture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Texture.cpp; sourceTree = "<group>"; };
 		847E47CE21E5CFCE0049F255 /* Texture.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Texture.hpp; sourceTree = "<group>"; };
 		847E47D021E5CFFB0049F255 /* Utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Utils.cpp; sourceTree = "<group>"; };
 		847E47D121E5CFFB0049F255 /* Utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Utils.hpp; sourceTree = "<group>"; };
-		847E47D321E5D02B0049F255 /* Vector.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Vector.cpp; sourceTree = "<group>"; };
-		847E47D421E5D02B0049F255 /* Vector.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Vector.hpp; sourceTree = "<group>"; };
 		847E47D721E5E6680049F255 /* BRDF.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BRDF.hpp; sourceTree = "<group>"; };
-		847E47E221E5FBF20049F255 /* Bézier.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Bézier.cpp"; sourceTree = "<group>"; };
 		847E47E321E5FBF20049F255 /* SPPM.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SPPM.cpp; sourceTree = "<group>"; };
 		847E47E421E5FBF20049F255 /* SPPM.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SPPM.hpp; sourceTree = "<group>"; };
+		8481D14421EB1AAE000793AF /* Vec3d.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Vec3d.hpp; sourceTree = "<group>"; };
+		8481D14521EB1AAE000793AF /* Vec3d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Vec3d.cpp; sourceTree = "<group>"; };
+		8481D14721EB1AF3000793AF /* KDTree.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = KDTree.hpp; sourceTree = "<group>"; };
+		8481D14821EB1AF3000793AF /* KDTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KDTree.cpp; sourceTree = "<group>"; };
 		84978BA621E7839100FC4B7D /* Ray.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Ray.hpp; sourceTree = "<group>"; };
-		84978BA821E7853900FC4B7D /* Vec3f.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Vec3f.hpp; sourceTree = "<group>"; };
-		84978BA921E7853900FC4B7D /* Vec3f.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Vec3f.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,21 +83,18 @@
 				847E47D721E5E6680049F255 /* BRDF.hpp */,
 				847E47CA21E5CF9C0049F255 /* Scene.cpp */,
 				847E47CB21E5CF9C0049F255 /* Scene.hpp */,
-				847E47C421E5CF190049F255 /* HitPoint.cpp */,
-				847E47C521E5CF190049F255 /* HitPoint.hpp */,
+				8481D14821EB1AF3000793AF /* KDTree.cpp */,
+				8481D14721EB1AF3000793AF /* KDTree.hpp */,
 				8412D4EC21E59F5200183531 /* Object.cpp */,
 				8412D4ED21E59F5200183531 /* Object.hpp */,
 				847E47CD21E5CFCE0049F255 /* Texture.cpp */,
 				847E47CE21E5CFCE0049F255 /* Texture.hpp */,
-				847E47E221E5FBF20049F255 /* Bézier.cpp */,
 				84978BA621E7839100FC4B7D /* Ray.hpp */,
 				847E47E321E5FBF20049F255 /* SPPM.cpp */,
 				847E47E421E5FBF20049F255 /* SPPM.hpp */,
-				84978BA921E7853900FC4B7D /* Vec3f.cpp */,
-				84978BA821E7853900FC4B7D /* Vec3f.hpp */,
+				8481D14521EB1AAE000793AF /* Vec3d.cpp */,
+				8481D14421EB1AAE000793AF /* Vec3d.hpp */,
 				847E47D021E5CFFB0049F255 /* Utils.cpp */,
-				847E47D321E5D02B0049F255 /* Vector.cpp */,
-				847E47D421E5D02B0049F255 /* Vector.hpp */,
 				847E47D121E5CFFB0049F255 /* Utils.hpp */,
 				8454D85A21AABDD00045A126 /* main.cpp */,
 			);
@@ -165,15 +157,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				847E47E721E5FBF30049F255 /* Bézier.cpp in Sources */,
 				847E47CC21E5CF9C0049F255 /* Scene.cpp in Sources */,
-				847E47C621E5CF190049F255 /* HitPoint.cpp in Sources */,
+				8481D14621EB1AAE000793AF /* Vec3d.cpp in Sources */,
 				847E47D221E5CFFB0049F255 /* Utils.cpp in Sources */,
 				847E47CF21E5CFCE0049F255 /* Texture.cpp in Sources */,
-				84978BAA21E7853900FC4B7D /* Vec3f.cpp in Sources */,
-				847E47D521E5D02B0049F255 /* Vector.cpp in Sources */,
 				847E47E821E5FBF30049F255 /* SPPM.cpp in Sources */,
 				8454D85B21AABDD00045A126 /* main.cpp in Sources */,
+				8481D14921EB1AF4000793AF /* KDTree.cpp in Sources */,
 				8412D4EE21E59F5200183531 /* Object.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

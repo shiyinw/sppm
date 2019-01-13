@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 
-#include "Vector.hpp"
+#include "Vec3d.hpp"
 
 class Ray {
 public:

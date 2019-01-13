@@ -82,7 +82,7 @@ void SPPM::render(int numRounds, int numPhotons) {
         if ((round+1)%1==0) {
             evaluateRadiance(round + 1, numPhotons);
             char filename[100];
-            sprintf(filename, "checkpoints/checkpoint-%d.ppm", round + 1);
+            sprintf(filename, "checkpoints/%d_image.ppm", round + 1);
             save(filename);
         }
     }

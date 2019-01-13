@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include "Object.hpp"
-#include "HitPoint.hpp"
+#include "KDTree.hpp"
 #include "Ray.hpp"
 
 class ObjectKDTreeNode {
