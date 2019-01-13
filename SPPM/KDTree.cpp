@@ -96,8 +96,12 @@ bool cmpHitPointZ(HitPoint *a, HitPoint *b) {
 
 
 bool ObjectKDTreeNode::inside(Mesh *mesh) {
-    Vec3d faceMin = mesh->min();
-    Vec3d faceMax = mesh->max();
+    Vec3d faceMin = mesh->aabb->_min;
+    Vec3d faceMax = mesh->aabb->_max;
+    
+//    Vec3d faceMin = mesh->min();
+//    Vec3d faceMax = mesh->max();
+    
     for(int i=0; i<3; i++){
         if(!(faceMin._p[i] < max._p[i] || (faceMin._p[i] == max._p[i] && faceMin._p[i] == faceMax._p[i])))
             return false;
@@ -170,8 +174,8 @@ ObjectKDTree::ObjectKDTree(vector<Mesh*>* meshes) {
     Vec3d min = Vec3d(1e100, 1e100, 1e100);
     Vec3d max = min * -1;
     for (auto mesh : *meshes) {
-        min = ::min(min, mesh->min());
-        max = ::max(max, mesh->max());
+        min = ::min(min, mesh->aabb->_min);
+        max = ::max(max, mesh->aabb->_max);
     }
     root = build(1, 0, meshes, min, max);
     this->meshes = new vector<Mesh*>;

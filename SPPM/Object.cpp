@@ -63,8 +63,8 @@ void Object::printBox() {
     Vec3d min(1e100, 1e100, 1e100);
     Vec3d max = min * -1;
     for (int i = 0; i < numFaces; ++i) {
-        min = ::min(min, meshes[i]->min());
-        max = ::max(max, meshes[i]->max());
+        min = ::min(min, meshes[i]->aabb->_min);
+        max = ::max(max, meshes[i]->aabb->_max);
     }
     min.print();
     max.print();
@@ -80,8 +80,10 @@ void Object::scale(
         vertexes[i]->y = fyx * ver.x + fyy * ver.y + fyz * ver.z + fyb;
         vertexes[i]->z = fzx * ver.x + fzy * ver.y + fzz * ver.z + fzb;
     }
-    for (int i = 0; i < numFaces; ++i)
+    for (int i = 0; i < numFaces; ++i){
         meshes[i]->scale(fxx, fxy, fxz, fxb, fyx, fyy, fyz, fyb, fzx, fzy, fzz, fzb);
+        meshes[i]->updateAABB();
+    }
     calcCenter();
 }
 
@@ -91,19 +93,11 @@ void Object::rotXZ(double theta) {
         Vec3d _d = *vertexes[i] - *center;
         *vertexes[i] = *center + Vec3d(cos(theta) * _d.x - sin(theta) * _d.z,  _d.y, sin(theta) * _d.x + cos(theta) * _d.z);
     }
+    for (int i = 0; i < numFaces; ++i){
+        meshes[i]->updateAABB();
+    }
 }
 
-Vec3d TriMesh::min() {
-    return ::min(*a, ::min(*b, *c));
-}
-
-Vec3d TriMesh::max() {
-    return ::max(*a, ::max(*b, *c));
-}
-
-Vec3d TriMesh::center() {
-    return (*a + *b + *c) / 3;
-}
 
 pair<double, Vec3d> TriMesh::intersect(Ray ray) {
     Vec3d E1 = *a - *b, E2 = *a - *c, S = *a - ray.s;
@@ -133,18 +127,6 @@ double TriMesh::intersectPlane(Ray ray) {
     return t;
 }
 
-Vec3d SphereMesh::min() {
-    return c - Vec3d(r, r, r);
-}
-
-Vec3d SphereMesh::max() {
-    return c + Vec3d(r, r, r);
-}
-
-Vec3d SphereMesh::center() {
-    return c;
-}
-
 pair<double, Vec3d> SphereMesh::intersect(Ray ray) {
     Vec3d l = c - ray.s;
     double dis2 = l.norm2();
@@ -162,18 +144,6 @@ pair<double, Vec3d> SphereMesh::intersect(Ray ray) {
     if (dot(norm, ray.d) > 0) norm = norm * -1;
     norm.normalize();
     return make_pair(t, norm);
-}
-
-Vec3d CircleMesh::min() {
-    return c - Vec3d(r, 0, r);
-}
-
-Vec3d CircleMesh::max() {
-    return c + Vec3d(r, 0, r);
-}
-
-Vec3d CircleMesh::center() {
-    return c;
 }
 
 pair<double, Vec3d> CircleMesh::intersect(Ray ray) {

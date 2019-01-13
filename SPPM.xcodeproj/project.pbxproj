@@ -92,9 +92,9 @@
 				847E47E321E5FBF20049F255 /* SPPM.cpp */,
 				8481D14421EB1AAE000793AF /* Vec3d.hpp */,
 				8481D14521EB1AAE000793AF /* Vec3d.cpp */,
-				8454D85A21AABDD00045A126 /* main.cpp */,
 				8481D14A21EB618A000793AF /* Random.hpp */,
 				8481D15021EB658B000793AF /* Random.cpp */,
+				8454D85A21AABDD00045A126 /* main.cpp */,
 			);
 			path = SPPM;
 			sourceTree = "<group>";

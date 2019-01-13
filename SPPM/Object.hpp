@@ -26,17 +26,15 @@ struct Ray;
 
 // AABB box
 class AABB{
+public:
     Vec3d _min;
     Vec3d _max;
-public:
+    Vec3d _center;
     // triangle mesh
     AABB(Vec3d a, Vec3d b, Vec3d c){
-        _min.x = std::min(a.x, std::min(b.x, c.x));
-        _min.y = std::min(a.y, std::min(b.y, c.y));
-        _min.z = std::min(a.z, std::min(b.z, c.z));
-        _max.x = std::max(a.x, std::max(b.x, c.x));
-        _max.y = std::max(a.y, std::max(b.y, c.y));
-        _max.z = std::max(a.z, std::max(b.z, c.z));
+        _min = Vec3d(std::min(a.x, std::min(b.x, c.x)), std::min(a.y, std::min(b.y, c.y)), std::min(a.z, std::min(b.z, c.z)));
+        _max = Vec3d(std::max(a.x, std::max(b.x, c.x)), std::max(a.y, std::max(b.y, c.y)), std::max(a.z, std::max(b.z, c.z)));
+        _center = (_min+_max)/2;
     }
     
     // 3d ball and 2d ball
@@ -49,25 +47,25 @@ public:
             _max = Vec3d(c.x + r, c.y + r, c.z);
             _min = Vec3d(c.x - r, c.y - r, c.z);
         }
+         _center = c;
     }
     
     // 3d cube and 2d square
     AABB(Vec3d min, Vec3d max){
         _max = max;
         _min = min;
+        _center = (_min+_max)/2;
     }
     
-//    bool ObjectKDTreeNode::inside(Mesh *mesh) {
-//        Vec3d faceMin = mesh->min();
-//        Vec3d faceMax = mesh->max();
-//        return (faceMin.x < max.x || (faceMin.x == max.x && faceMin.x == faceMax.x))
-//        && (faceMax.x > min.x || (faceMax.x == min.x && faceMin.x == faceMax.x))
-//        && (faceMin.y < max.y || (faceMin.y == max.y && faceMin.y == faceMax.y))
-//        && (faceMax.y > min.y || (faceMax.y == min.y && faceMin.y == faceMax.y))
-//        && (faceMin.z < max.z || (faceMin.z == max.z && faceMin.z == faceMax.z))
-//        && (faceMax.z > min.z || (faceMax.z == min.z && faceMin.z == faceMax.z));
-//    }
-
+    bool inside(Vec3d kdmin, Vec3d kdmax) {
+        for(int i=0; i<3; i++){
+            if(!(_min._p[i] < kdmax._p[i] || (_min._p[i] == kdmax._p[i] && _min._p[i] == _max._p[i])))
+                return false;
+            if(!(_max._p[i] > kdmin._p[i] || (_max._p[i] == kdmin._p[i] && _min._p[i] == _max._p[i])))
+                return false;
+        }
+        return true;
+    }
 };
 
 class Mesh {
@@ -75,15 +73,14 @@ public:
     Object *object;
     TextureMapper *texture;
     int brdf;
-    virtual Vec3d min() = 0;
-    virtual Vec3d max() = 0;
-    virtual Vec3d center() = 0;
+    AABB *aabb;
     virtual void scale(
                        double fxx, double fxy, double fxz, double fxb,
                        double fyx, double fyy, double fyz, double fyb,
                        double fzx, double fzy, double fzz, double fzb
                        ) = 0;
     virtual pair<double, Vec3d> intersect(Ray ray) = 0;
+    virtual void updateAABB() = 0;
 };
 
 class TriMesh : public Mesh {
@@ -95,10 +92,8 @@ public:
         this->c = c;
         this->texture = texture;
         this->brdf = brdf;
+        this->aabb = new AABB(*a, *b, *c);
     }
-    Vec3d min();
-    Vec3d max();
-    Vec3d center();
     void scale(
                double fxx, double fxy, double fxz, double fxb,
                double fyx, double fyy, double fyz, double fyb,
@@ -106,6 +101,9 @@ public:
                ){}
     pair<double, Vec3d> intersect(Ray ray);
     double intersectPlane(Ray ray);
+    void updateAABB(){
+        this->aabb = new AABB(*a, *b, *c);
+    }
 };
 
 class SphereMesh : public Mesh {
@@ -117,16 +115,17 @@ public:
         this->r = r;
         this->texture = texture;
         this->brdf = brdf;
+        this->aabb = new AABB(c, r, true);
     }
-    Vec3d min();
-    Vec3d max();
-    Vec3d center();
     void scale(
                double fxx, double fxy, double fxz, double fxb,
                double fyx, double fyy, double fyz, double fyb,
                double fzx, double fzy, double fzz, double fzb
                ){}
     pair<double, Vec3d> intersect(Ray ray);
+    void updateAABB(){
+        this->aabb = new AABB(c, r, true);
+    }
 };
 
 class CircleMesh : public Mesh {
@@ -138,16 +137,17 @@ public:
         this->r = r;
         this->texture = texture;
         this->brdf = brdf;
+        this->aabb = new AABB(c, r, false);
     }
-    Vec3d min();
-    Vec3d max();
-    Vec3d center();
     void scale(
                double fxx, double fxy, double fxz, double fxb,
                double fyx, double fyy, double fyz, double fyb,
                double fzx, double fzy, double fzz, double fzb
                ){}
     pair<double, Vec3d> intersect(Ray ray);
+    void updateAABB(){
+        this->aabb = new AABB(c, r, false);
+    }
 };
 
 class Object {
