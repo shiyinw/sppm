@@ -10,7 +10,7 @@
 #define MAX_DEPTH 10
 
 #include "Scene.hpp"
-#include "Utils.hpp"
+#include "Random.hpp"
 #include <iostream>
 
 struct Params{
@@ -24,7 +24,7 @@ void Scene::addObject(Object* object) {
 }
 
 Ray Scene::generateRay(long long i) {
-    double alpha = Utils::random(0, 2 * M_PI, 0, i);
+    double alpha = randomdist(0, 2 * M_PI, 0, i);
     Vec3d s = sourceP +  Vec3d(cos(alpha), 0, sin(alpha)) * sourceR;
     Vec3d d = sampleReflectedRay(sourceN, 0, i);
     Ray ray;
@@ -39,8 +39,8 @@ Vec3d Scene::sampleReflectedRay(Vec3d norm, int depth, long long i, double s) {
     u.normalize();
     Vec3d v = cross(norm, u);
     v.normalize();
-    double theta = Utils::random(0, 2 * M_PI, 2 * depth + 1, i);
-    double phi = asin(pow(Utils::random(0, 1, 2 * depth + 2, i), 1. / (s + 1)));
+    double theta = randomdist(0, 2 * M_PI, 2 * depth + 1, i);
+    double phi = asin(pow(randomdist(0, 1, 2 * depth + 2, i), 1. / (s + 1)));
     return (norm * cos(phi) + (u * cos(theta) + v * sin(theta)) * sin(phi)).normalize();
 }
 
@@ -60,7 +60,7 @@ void Scene::trace(const Ray &ray, const Vec3d &weight, int depth, long long i, H
     
     // russian roulette
     double s = BRDFs[nextMesh->brdf].specular + BRDFs[nextMesh->brdf].diffuse + BRDFs[nextMesh->brdf].refraction;
-    double action = Utils::random(0, 1) * s;
+    double action = randomdist(0, 1) * s;
     Vec3d dr = ray.d - norm * (2 * dot(ray.d, norm));
     
     // specular
@@ -89,7 +89,7 @@ void Scene::trace(const Ray &ray, const Vec3d &weight, int depth, long long i, H
                 hp->valid = true;
         }
         else {
-            double a = Utils::random();
+            double a = randomdist();
             // phong specular
             if (((double) rand() / (RAND_MAX)) <= BRDFs[nextMesh->brdf].rho_s) {
                 Ray rayout;

@@ -56,7 +56,7 @@ HitPointKDTree::~HitPointKDTree() {
 
 void HitPointKDTree::update(HitPointKDTreeNode * p, Vec3d photon, Vec3d weight, Vec3d d) {
     if (!p) return;
-    double mind = 0, maxd = 0;
+    double mind = 0;
     for(int i=0; i< 3; i++){
         if (photon._p[i] > p->max._p[i]) mind += (photon._p[i] - p->max._p[i])*(photon._p[i] - p->max._p[i]);
         if (photon._p[i] < p->min._p[i]) mind += (p->min._p[i] - photon._p[i])*(p->min._p[i] - photon._p[i]);

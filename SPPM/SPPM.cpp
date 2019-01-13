@@ -48,7 +48,7 @@ void SPPM::render(int numRounds) {
                 ray.d = p - s;
                 double t = focusPlane.intersectPlane(ray);
                 Vec3d focusP = ray.s + ray.d * t;
-                double theta = Utils::random(0, 2 * M_PI);
+                double theta = randomdist(0, 2 * M_PI);
                 ray.s = ray.s + Vec3d(cos(theta), sin(theta), 0) * aperture;
                 ray.d = focusP - ray.s;
                 ray.d.normalize();

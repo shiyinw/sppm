@@ -10,7 +10,7 @@
 #define EPSILON 1e-6
 
 #include "Object.hpp"
-#include "Utils.hpp"
+#include "Random.hpp"
 
 #include <iostream>
 using namespace std;

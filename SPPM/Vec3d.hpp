@@ -8,7 +8,7 @@
 
 #ifndef Vec3d_hpp
 #define Vec3d_hpp
-#include "Utils.hpp"
+#include "Random.hpp"
 
 class Vec3d {
 public:
