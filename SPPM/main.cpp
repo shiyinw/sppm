@@ -93,7 +93,7 @@ Object* genLight(Vec3d p, double r) {
     Object *light = new Object;
     light->numFaces = 1;
     light->meshes = new Mesh*[1]{
-        new CircleMesh(p, r, new TextureMapper(Vec3d(1, 1, 1)), LIGHT)
+        new SphereMesh(p, r, new TextureMapper(Vec3d(1, 1, 1)), LIGHT)
     };
     return light;
 }
@@ -123,7 +123,7 @@ Scene *sceneBox() {
     scene->addObject(bunny);
     scene->addObject(water);
     scene->addObject(genWalls());
-    scene->addObject(genLight(Vec3d(0, 0.5 - EPSILON, 0.1), 0.2));
+    scene->addObject(genLight(Vec3d(0, 0.5 - EPSILON, 0.1), 0.05));
     scene->addObject(new Sphere(Vec3d(-0.32, -0.30, 0.3), 0.18, new TextureMapper(Vec3d(1, 1, 1)), GLASS));
     scene->addObject(new Sphere(Vec3d(0.42, 0.20, 0), 0.15, new TextureMapper(Vec3d(1, 1, 1)), MIRROR));
     return scene;
