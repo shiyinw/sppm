@@ -14,28 +14,6 @@
 #include "KDTree.hpp"
 #include "Ray.hpp"
 
-class ObjectKDTreeNode {
-public:
-    Vec3d min, max;
-    vector<Mesh*>* meshes;
-    ObjectKDTreeNode *ls, *rs;
-    int l, r;
-    bool inside(Mesh *mesh);
-};
-
-class ObjectKDTree {
-    int n;
-    Vec3d** vertexes;
-    ObjectKDTreeNode* build(int depth, int d, vector<Mesh*>* meshes, Vec3d min, Vec3d max);
-    void getFaces(ObjectKDTreeNode *p, vector<Mesh*>* meshes);
-public:
-    ObjectKDTreeNode* root;
-    vector<Mesh*> *meshes;
-    ObjectKDTree(vector<Mesh*>* meshes);
-    double getCuboidIntersection(ObjectKDTreeNode *p, Ray ray);
-    void getIntersection(ObjectKDTreeNode *p, Ray ray, Mesh* &nextMesh, double &tMin, Vec3d &norm);
-};
-
 class Scene {
     vector<Object*> objects;
     vector<HitPoint*> hitpoints;

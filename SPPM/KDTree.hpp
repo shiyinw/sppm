@@ -13,6 +13,7 @@
 
 #include "Vec3d.hpp"
 #include "BRDF.hpp"
+#include "Object.hpp"
 
 using namespace std;
 
@@ -56,6 +57,29 @@ public:
 bool cmpHitPointX(HitPoint *a, HitPoint *b);
 bool cmpHitPointY(HitPoint *a, HitPoint *b);
 bool cmpHitPointZ(HitPoint *a, HitPoint *b);
+
+class ObjectKDTreeNode {
+public:
+    Vec3d min, max;
+    vector<Mesh*>* meshes;
+    ObjectKDTreeNode *ls, *rs;
+    int l, r;
+    bool inside(Mesh *mesh);
+};
+
+class ObjectKDTree {
+    int n;
+    Vec3d** vertexes;
+    ObjectKDTreeNode* build(int depth, int d, vector<Mesh*>* meshes, Vec3d min, Vec3d max);
+    void getFaces(ObjectKDTreeNode *p, vector<Mesh*>* meshes);
+public:
+    ObjectKDTreeNode* root;
+    vector<Mesh*> *meshes;
+    ObjectKDTree(vector<Mesh*>* meshes);
+    double getCuboidIntersection(ObjectKDTreeNode *p, Ray ray);
+    void getIntersection(ObjectKDTreeNode *p, Ray ray, Mesh* &nextMesh, double &tMin, Vec3d &norm);
+};
+
 
 
 #endif /* HitPoint_hpp */

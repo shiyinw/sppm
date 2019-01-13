@@ -135,7 +135,8 @@ int main(int argc, char *argv[]) {
     camera->setLens(0.684, 0.811, 1e-3, 1 + 0.09);
     
     
-    //camera->load((char*)"checkpoints/checkpoint-10.ppm");
+    camera->load((char*)"checkpoints/1_image.ppm");
+    camera->save((char*)"test.ppm");
     
     camera -> render(2500, 200000);
     

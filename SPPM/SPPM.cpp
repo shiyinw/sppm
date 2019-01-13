@@ -20,9 +20,9 @@ void SPPM::evaluateRadiance(int numRounds, int numPhotons) {
         for (int v = 0; v < h; ++v) {
             HitPoint *hp = (*hitpoints)[u * h + v];
             canvas[u][v] = hp->flux / (M_PI * hp->r2 * numPhotons * numRounds) + light * hp->fluxLight / numRounds;
-            canvas[u][v].x = pow(canvas[u][v].x, GAMMA);
-            canvas[u][v].y = pow(canvas[u][v].y, GAMMA);
-            canvas[u][v].z = pow(canvas[u][v].z, GAMMA);
+            canvas[u][v].x = sqrt(canvas[u][v].x);
+            canvas[u][v].y = sqrt(canvas[u][v].y);
+            canvas[u][v].z = sqrt(canvas[u][v].z);
             canvas[u][v] = min(canvas[u][v], Vec3d(1, 1, 1));
             canvas[u][v] = max(canvas[u][v], Vec3d(0, 0, 0));
         }
@@ -46,14 +46,11 @@ void SPPM::render(int numRounds, int numPhotons) {
     
     // SPPM
     for (int round = 0; round < numRounds; ++round) {
-        fprintf(stderr, "Round %d/%d:\n", round + 1, numRounds);
+        printf("Round %d/%d:\n", round + 1, numRounds);
         
         // ray tracing pass
-        cout<<"Start Ray Tracing......"<<endl;
+        printf("Start ray tracing......\n");
         for (int u = 0; u < w; ++u) {
-            if(u%100==0){
-                cout<<"Ray tracing pass "<<u<<"/"<<w<<endl;
-            }
             for (int v = 0; v < h; ++v) {
                 Vec3d p(double(u - cx) / w / fx, double(v - cy) / h / fy, 0);
                 Ray ray(s, p - s);
@@ -72,11 +69,11 @@ void SPPM::render(int numRounds, int numPhotons) {
         scene->initializeHitpointKDTree(hitpoints);
         
         // photon tracing pass
+        printf("Start photon mapping......\n");
         for (int i = 0; i < numPhotons; ++i) {
             Ray ray = scene->generateRay((long long)round * numPhotons + (round + 1) * w * h + i);
             scene->trace(ray, weight_init * light, 1, (long long)round * numPhotons + i);
         }
-        fprintf(stderr, "\rPhoton tracing pass done\n");
         
         // save checkpoints
         if ((round+1)%1==0) {
@@ -92,8 +89,8 @@ void SPPM::render(int numRounds, int numPhotons) {
 void SPPM::save(char *filename) {
     FILE *file = fopen(filename, "w");
     fprintf(file, "P3\n%d %d\n255\n", w, h);
-    for (int i = 0; i < h; ++i) {
-        for (int j = 0; j < w; ++j)
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++)
             fprintf(file, "%d %d %d ", int(canvas[j][h - i - 1].x * 255 + 0.5), int(canvas[j][h - i - 1].y * 255 + 0.5), int(canvas[j][h - i - 1].z * 255 + 0.5));
         fprintf(file, "\n");
     }
@@ -102,43 +99,25 @@ void SPPM::save(char *filename) {
 }
 
 void SPPM::load(char *filename) {
-//    FILE *file = fopen(filename, "r");
-//    char buffer[BUFFER_SIZE];
-//    int weight, height;
-//    fgets(buffer, BUFFER_SIZE, file);
-//    fgets(buffer, BUFFER_SIZE, file);
-//    assert(string(buffer)==std::to_string(w)+" "+std::to_string(h)+"\n");
-//    fgets(buffer, BUFFER_SIZE, file);
-//    assert(string(buffer)=="255\n");
-//    fgets(buffer, BUFFER_SIZE, file);
-//    cout<<buffer<<endl;
+    FILE *file = fopen(filename, "r");
+    char buffer[BUFSIZ];
+    int weight, height;
+    fscanf(file, "%s", buffer);
+    //printf(buffer);
+    fscanf(file, "%d %d", &weight, &height);
+    fscanf(file, "%d", buffer);
+    printf("Import checkpoint with weight=%d, height=%d\n", weight, height);
     
-    ifstream inFile;
-    inFile.open(filename);
-    if (!inFile) {
-        cout << "Unable to open file";
-        exit(1); // terminate with error
-    }
-    string r, g, b;
-    inFile>>r;
-    assert(r=="P3");
-    inFile>>r;
-    assert(r==to_string(w));
-    inFile>>r;
-    assert(r==to_string(h));
-    inFile>>r;
-    assert(r=="255");
-    
-    for (int i = 0; i < h; ++i) {
-        for (int j = 0; j < w; ++j){
-            inFile>>r>>g>>b;
-            canvas[j][h - i - 1].x = stoi(r)/255;
-            canvas[j][h - i - 1].y = stoi(g)/255;
-            canvas[j][h - i - 1].z = stoi(b)/255;
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++){
+            int r, g, b;
+            fscanf(file, "%d %d %d", &r, &g, &b);
+            canvas[j][h - i - 1].x = r/255.;
+            canvas[j][h - i - 1].y = g/255.;
+            canvas[j][h - i - 1].z = b/255.;
         }
     }
-    
-    inFile.close();
+    fclose(file);
 }
 
 SPPM::SPPM(int w, int h, Scene *scene, Vec3d s) {
