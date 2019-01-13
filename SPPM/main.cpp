@@ -14,12 +14,15 @@
 #include "Scene.hpp"
 using namespace std;
 
+#define BOX_X 10
+#define BOX_Y 50
+#define BOX_Z 20
+
 Object* genWalls() {
     Texture *textureBottom = new Texture((char*)"objects/bottom.ppm");
     Texture *textureBack = new Texture((char*)"objects/back.ppm");
     Texture *textureTop = new Texture((char*)"objects/top.ppm");
     
-    TextureMapper *color_back = new TextureMapper(Vec3d(1, 1, 1));
     TextureMapper *color_front = new TextureMapper(Vec3d(0.8, 0.2, 0.2));
     TextureMapper *color_left = new TextureMapper(Vec3d(0.2, 0.5, 0.8));
     TextureMapper *color_right = new TextureMapper(Vec3d(0.2, 0.8, 0.5));
@@ -98,7 +101,7 @@ Object* genLight(Vec3d p, double r) {
 Scene *sceneBox() {
     Object *bunny = new Object;
     bunny->importPly((char*)"objects/bunny.ply",  new TextureMapper(Vec3d(0.4, 0.8, 0.8)), STANFORD_MODEL);
-    
+
     bunny->scale(2.8, 0, 0, 0.24,
                  0, 2.8, 0, -0.09 - 0.5,
                  0, 0, -2.8, 0.12
@@ -131,18 +134,17 @@ int main(int argc, char *argv[]) {
     Scene *scene = sceneBox();
     //Scene *scene = sceneTeapot();
     
-    SPPM *camera = new SPPM(1024, 768, scene, Vec3d(0, 0.15, -1));
+    SPPM *camera = new SPPM(1024, 768, scene, Vec3d(0, 0.15, -1), 200000);
     camera->setLens(0.684, 0.811, 1e-3, 1 + 0.09);
     
     
-    camera->load((char*)"checkpoints/1_image.ppm");
-    camera->save((char*)"test.ppm");
+    //camera->load((char*)"checkpoints/11_image.ppm", (char*)"checkpoints/11_hitpoints.txt", 11);
     
-    camera -> render(2500, 200000);
+    camera -> render(2500);
     
     // 2500, 200000
     
-    camera->save((char*)"result_test.ppm");
+    camera->save((char*)"result_test.ppm", (char*)"hitpoints.txt");
     return 0;
 }
 

@@ -12,48 +12,40 @@
 #include <fstream>
 using namespace std;
 
-#define GAMMA 0.5
 #define BUFFER_SIZE 1024
 
-void SPPM::evaluateRadiance(int numRounds, int numPhotons) {
-    for (int u = 0; u < w; ++u)
-        for (int v = 0; v < h; ++v) {
-            HitPoint *hp = (*hitpoints)[u * h + v];
-            canvas[u][v] = hp->flux / (M_PI * hp->r2 * numPhotons * numRounds) + light * hp->fluxLight / numRounds;
-            canvas[u][v].x = sqrt(canvas[u][v].x);
-            canvas[u][v].y = sqrt(canvas[u][v].y);
-            canvas[u][v].z = sqrt(canvas[u][v].z);
-            canvas[u][v] = min(canvas[u][v], Vec3d(1, 1, 1));
-            canvas[u][v] = max(canvas[u][v], Vec3d(0, 0, 0));
-        }
-}
+struct Ray;
 
-void SPPM::render(int numRounds, int numPhotons) {
-    scene->initializeObjectKDTree();
+void SPPM::render(int numRounds) {
     
+    scene->initializeObjectKDTree();
     int cx = w / 2, cy = h / 2;
     
     TriMesh focusPlane(new Vec3d(0, 0, s.z + focus), new Vec3d(0, 1, s.z + focus), new Vec3d(1, 0, s.z + focus));
-    
-    // initialize hitpoints
-    hitpoints = new vector<HitPoint*>;
-    for (int u = 0; u < w; ++u)
-        for (int v = 0; v < h; ++v)
-            hitpoints->push_back(new HitPoint);
     
     light = Vec3d(1, 1, 1);
     const Vec3d weight_init = Vec3d(2.5, 2.5, 2.5);
     
     // SPPM
-    for (int round = 0; round < numRounds; ++round) {
-        printf("Round %d/%d:\n", round + 1, numRounds);
+    for (; round < numRounds; ++round) {
         
-        // ray tracing pass
+        // save checkpoints
+        if (round%1==0 && round!=0) {
+            char filename1[100], filename2[100];
+            sprintf(filename1, "checkpoints/%d_image.ppm", round);
+            sprintf(filename2, "checkpoints/%d_hitpoints.txt", round);
+            save(filename1, filename2);
+        }
+        
+        printf("Round %d/%d:\n", round + 1, numRounds);
+        // PASS1: ray tracing pass
         printf("Start ray tracing......\n");
         for (int u = 0; u < w; ++u) {
             for (int v = 0; v < h; ++v) {
                 Vec3d p(double(u - cx) / w / fx, double(v - cy) / h / fy, 0);
-                Ray ray(s, p - s);
+                Ray ray;
+                ray.s = s;
+                ray.d = p - s;
                 double t = focusPlane.intersectPlane(ray);
                 Vec3d focusP = ray.s + ray.d * t;
                 double theta = Utils::random(0, 2 * M_PI);
@@ -62,7 +54,7 @@ void SPPM::render(int numRounds, int numPhotons) {
                 ray.d.normalize();
                 (*hitpoints)[u * h + v]->valid = false;
                 (*hitpoints)[u * h + v]->d = ray.d * -1;
-                scene->trace(ray, Vec3d(1, 1, 1), 1, (long long)round * (numPhotons + w * h) + u * h + v, (*hitpoints)[u * h + v]);
+                scene->trace(ray, Vec3d(1, 1, 1), 1, (long long)round * (photon + w * h) + u * h + v, (*hitpoints)[u * h + v]);
             }
         }
         
@@ -70,63 +62,65 @@ void SPPM::render(int numRounds, int numPhotons) {
         
         // photon tracing pass
         printf("Start photon mapping......\n");
-        for (int i = 0; i < numPhotons; ++i) {
-            Ray ray = scene->generateRay((long long)round * numPhotons + (round + 1) * w * h + i);
-            scene->trace(ray, weight_init * light, 1, (long long)round * numPhotons + i);
-        }
-        
-        // save checkpoints
-        if ((round+1)%1==0) {
-            evaluateRadiance(round + 1, numPhotons);
-            char filename[100];
-            sprintf(filename, "checkpoints/%d_image.ppm", round + 1);
-            save(filename);
+        for (int i = 0; i < photon; ++i) {
+            Ray ray = scene->generateRay((long long)round * photon + (round + 1) * w * h + i);
+            scene->trace(ray, weight_init * light, 1, (long long)round * photon + i);
         }
     }
-    evaluateRadiance(numRounds, numPhotons);
 }
 
-void SPPM::save(char *filename) {
-    FILE *file = fopen(filename, "w");
-    fprintf(file, "P3\n%d %d\n255\n", w, h);
+void SPPM::save(char *filename1, char *filename2) {
+    for (int u = 0; u < w; ++u)
+        for (int v = 0; v < h; ++v) {
+            HitPoint *hp = (*hitpoints)[u * h + v];
+            canvas[u][v] = hp->flux / (M_PI * hp->r2 * this->round * this->photon) + light * hp->fluxLight / this->round;
+            canvas[u][v].x = sqrt(canvas[u][v].x);
+            canvas[u][v].y = sqrt(canvas[u][v].y);
+            canvas[u][v].z = sqrt(canvas[u][v].z);
+            canvas[u][v] = min(canvas[u][v], Vec3d(1, 1, 1));
+            canvas[u][v] = max(canvas[u][v], Vec3d(0, 0, 0));
+        }
+    
+    FILE *file1 = fopen(filename1, "w");
+    fprintf(file1, "P3\n%d %d\n255\n", w, h);
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++)
-            fprintf(file, "%d %d %d ", int(canvas[j][h - i - 1].x * 255 + 0.5), int(canvas[j][h - i - 1].y * 255 + 0.5), int(canvas[j][h - i - 1].z * 255 + 0.5));
-        fprintf(file, "\n");
+            fprintf(file1, "%d %d %d ", int(canvas[j][h - i - 1].x * 255 + 0.5), int(canvas[j][h - i - 1].y * 255 + 0.5), int(canvas[j][h - i - 1].z * 255 + 0.5));
+        fprintf(file1, "\n");
     }
-    fclose(file);
-    fprintf(stderr, "Image saved to %s\n", filename);
-}
-
-void SPPM::load(char *filename) {
-    FILE *file = fopen(filename, "r");
-    char buffer[BUFSIZ];
-    int weight, height;
-    fscanf(file, "%s", buffer);
-    //printf(buffer);
-    fscanf(file, "%d %d", &weight, &height);
-    fscanf(file, "%d", buffer);
-    printf("Import checkpoint with weight=%d, height=%d\n", weight, height);
+    fclose(file1);
     
+    //p, weight, flux, fluxLight, d, norm, n, brdf, r2
+    FILE *file2 = fopen(filename2, "w");
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++){
-            int r, g, b;
-            fscanf(file, "%d %d %d", &r, &g, &b);
-            canvas[j][h - i - 1].x = r/255.;
-            canvas[j][h - i - 1].y = g/255.;
-            canvas[j][h - i - 1].z = b/255.;
+            fprintf(file2, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %d %lf\n",
+                    (*hitpoints)[i*w+j]->p.x, (*hitpoints)[i*w+j]->p.y, (*hitpoints)[i*w+j]->p.z,
+                    (*hitpoints)[i*w+j]->weight.x, (*hitpoints)[i*w+j]->weight.y, (*hitpoints)[i*w+j]->weight.z,
+                    (*hitpoints)[i*w+j]->flux.x, (*hitpoints)[i*w+j]->flux.y, (*hitpoints)[i*w+j]->flux.z,
+                    (*hitpoints)[i*w+j]->fluxLight.x, (*hitpoints)[i*w+j]->fluxLight.y, (*hitpoints)[i*w+j]->fluxLight.z,
+                    (*hitpoints)[i*w+j]->norm.x, (*hitpoints)[i*w+j]->norm.y, (*hitpoints)[i*w+j]->norm.z,
+                    (*hitpoints)[i*w+j]->n, (*hitpoints)[i*w+j]->r2);
+        }
+    }
+    fclose(file2);
+    fprintf(stderr, "checkpoint %s and %s saved\n", filename1, filename2);
+}
+
+void SPPM::load(char *filename, int round) {
+    this->round = round;
+
+    FILE *file = fopen(filename, "w");
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++){
+            fscanf(file, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %d %lf\n",
+                   &(*hitpoints)[i*w+j]->p.x, &(*hitpoints)[i*w+j]->p.y, &(*hitpoints)[i*w+j]->p.z,
+                   &(*hitpoints)[i*w+j]->weight.x, &(*hitpoints)[i*w+j]->weight.y, &(*hitpoints)[i*w+j]->weight.z,
+                   &(*hitpoints)[i*w+j]->flux.x, &(*hitpoints)[i*w+j]->flux.y, &(*hitpoints)[i*w+j]->flux.z,
+                   &(*hitpoints)[i*w+j]->fluxLight.x, &(*hitpoints)[i*w+j]->fluxLight.y, &(*hitpoints)[i*w+j]->fluxLight.z,
+                   &(*hitpoints)[i*w+j]->norm.x, &(*hitpoints)[i*w+j]->norm.y, &(*hitpoints)[i*w+j]->norm.z,
+                   &(*hitpoints)[i*w+j]->n, &(*hitpoints)[i*w+j]->r2);
         }
     }
     fclose(file);
-}
-
-SPPM::SPPM(int w, int h, Scene *scene, Vec3d s) {
-    this->w = w;
-    this->h = h;
-    this->scene = scene;
-    this->s = s;
-    
-    canvas = new Vec3d*[w];
-    for (int i = 0; i < w; ++i)
-        canvas[i] = new Vec3d[h];
 }

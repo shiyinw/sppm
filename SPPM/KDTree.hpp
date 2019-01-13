@@ -16,6 +16,8 @@
 #include "Object.hpp"
 
 using namespace std;
+class Mesh;
+struct Ray;
 
 class HitPoint {
 public:

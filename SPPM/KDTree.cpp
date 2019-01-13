@@ -29,8 +29,8 @@ HitPointKDTreeNode* HitPointKDTree::build(int l, int r, int d) {
     else
         nth_element(hitpoints + l, hitpoints + m, hitpoints + r + 1, cmpHitPointZ);
     p->hitpoint = hitpoints[m];
-    if (l <= m - 1) p->ls = build(l, m - 1, (d + 1) % 3); else p->ls = nullptr;
-    if (m + 1 <= r) p->rs = build(m + 1, r, (d + 1) % 3); else p->rs = nullptr;
+    p->ls = (l <= m - 1)? build(l, m - 1, (d + 1) % 3):nullptr;
+    p->rs = (m + 1 <= r)? build(m + 1, r, (d + 1) % 3):nullptr;
     return p;
 }
 
@@ -57,12 +57,10 @@ HitPointKDTree::~HitPointKDTree() {
 void HitPointKDTree::update(HitPointKDTreeNode * p, Vec3d photon, Vec3d weight, Vec3d d) {
     if (!p) return;
     double mind = 0, maxd = 0;
-    if (photon.x > p->max.x) mind += (photon.x - p->max.x)*(photon.x - p->max.x);
-    if (photon.x < p->min.x) mind += (p->min.x - photon.x)*(p->min.x - photon.x);
-    if (photon.y > p->max.y) mind += (photon.y - p->max.y)*(photon.y - p->max.y);
-    if (photon.y < p->min.y) mind += (p->min.y - photon.y)*(p->min.y - photon.y);
-    if (photon.z > p->max.z) mind += (photon.z - p->max.z)*(photon.z - p->max.z);
-    if (photon.z < p->min.z) mind += (p->min.z - photon.z)*(p->min.z - photon.z);
+    for(int i=0; i< 3; i++){
+        if (photon._p[i] > p->max._p[i]) mind += (photon._p[i] - p->max._p[i])*(photon._p[i] - p->max._p[i]);
+        if (photon._p[i] < p->min._p[i]) mind += (p->min._p[i] - photon._p[i])*(p->min._p[i] - photon._p[i]);
+    }
     if (mind > p->maxr2) return;
     if (p->hitpoint->valid && (photon - p->hitpoint->p).norm2() <= p->hitpoint->r2) {
         HitPoint *hp = p->hitpoint;
@@ -100,12 +98,13 @@ bool cmpHitPointZ(HitPoint *a, HitPoint *b) {
 bool ObjectKDTreeNode::inside(Mesh *mesh) {
     Vec3d faceMin = mesh->min();
     Vec3d faceMax = mesh->max();
-    return (faceMin.x < max.x || (faceMin.x == max.x && faceMin.x == faceMax.x))
-    && (faceMax.x > min.x || (faceMax.x == min.x && faceMin.x == faceMax.x))
-    && (faceMin.y < max.y || (faceMin.y == max.y && faceMin.y == faceMax.y))
-    && (faceMax.y > min.y || (faceMax.y == min.y && faceMin.y == faceMax.y))
-    && (faceMin.z < max.z || (faceMin.z == max.z && faceMin.z == faceMax.z))
-    && (faceMax.z > min.z || (faceMax.z == min.z && faceMin.z == faceMax.z));
+    for(int i=0; i<3; i++){
+        if(!(faceMin._p[i] < max._p[i] || (faceMin._p[i] == max._p[i] && faceMin._p[i] == faceMax._p[i])))
+            return false;
+        if(!(faceMax._p[i] > min._p[i] || (faceMax._p[i] == min._p[i] && faceMin._p[i] == faceMax._p[i])))
+            return false;
+    }
+    return true;
 }
 
 ObjectKDTreeNode* ObjectKDTree::build(int depth, int d, vector<Mesh*>* meshes, Vec3d min, Vec3d max) {

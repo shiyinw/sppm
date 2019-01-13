@@ -10,7 +10,6 @@
 #define BNDF_hpp
 
 #include <stdio.h>
-#include "Ray.hpp"
 
 class BRDF {
 public:
@@ -41,7 +40,6 @@ const BRDF BRDFs[] = {
     BRDF(0, 1, 0,       1, 0, 0,        0), // DESK
     BRDF(0, 1, 0,       0.9, 0.1, 10,   1), // STANFORD_MODEL
     BRDF(0, 0, 1,       0, 0, 0,        1.3), // WATER
-    BRDF(0, 0, 1,       0, 0, 0,        1.5), // TEAPOT
 };
 
 

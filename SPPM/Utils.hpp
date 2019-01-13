@@ -21,7 +21,6 @@
 #include <stdexcept>
 
 namespace Utils {
-    std::vector<std::string> split(char *str);
 
     // Halton Sequence
     const int prime[] = {

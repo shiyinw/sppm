@@ -10,29 +10,6 @@
 
 using namespace std;
 
-
-vector<string> Utils::split(char *str) {
-    vector<string> res;
-    string cur = "";
-    for (int i = 0; str[i]; ++i) {
-        if (str[i] == ' ' || str[i] == '\n' || str[i] == '\r') {
-            if (cur != "") res.push_back(cur);
-            cur = "";
-        }
-        else
-            cur += str[i];
-    }
-    if (cur != "") res.push_back(cur);
-    return res;
-}
-
-bool isPrime(int x) {
-    for (int i = 2; i * i <= x; ++i)
-        if (x % i == 0)
-            return false;
-    return x > 1;
-}
-
 double Utils::randomQMC(int axis, long long i) {
     int base = prime[axis];
     double f = 1, res = 0;

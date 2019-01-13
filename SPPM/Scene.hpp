@@ -12,11 +12,16 @@
 #include <stdio.h>
 #include "Object.hpp"
 #include "KDTree.hpp"
-#include "Ray.hpp"
+
+class Object;
+class HitPointKDTree;
+class ObjectKDTree;
+class HitPoint;
+struct Ray;
 
 class Scene {
-    vector<Object*> objects;
-    vector<HitPoint*> hitpoints;
+    std::vector<Object*> objects;
+    std::vector<HitPoint*> hitpoints;
     HitPointKDTree *hitpointsKDTree;
     ObjectKDTree *objectKDTree;
     Vec3d sourceP, sourceN;
@@ -28,7 +33,7 @@ public:
     sourceP(_sourceP), sourceR(_sourceR), sourceN(_sourceN) { hitpointsKDTree = nullptr; }
     Ray generateRay(long long i);
     void trace(const Ray &ray, const Vec3d &weight, int depth, long long i, HitPoint *hp = nullptr);
-    void initializeHitpointKDTree(vector<HitPoint*>* hitpoints);
+    void initializeHitpointKDTree(std::vector<HitPoint*>* hitpoints);
     void initializeObjectKDTree();
 };
 

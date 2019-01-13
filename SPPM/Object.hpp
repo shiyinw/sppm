@@ -13,11 +13,62 @@
 //#include "Config.h"
 #include "Texture.hpp"
 #include "BRDF.hpp"
-#include "Ray.hpp"
 
 using namespace std;
 
 class Object;
+class Mesh;
+class TriMesh;
+class SphereMesh;
+class CircleMesh;
+class Sphere;
+struct Ray;
+
+// AABB box
+class AABB{
+    Vec3d _min;
+    Vec3d _max;
+public:
+    // triangle mesh
+    AABB(Vec3d a, Vec3d b, Vec3d c){
+        _min.x = std::min(a.x, std::min(b.x, c.x));
+        _min.y = std::min(a.y, std::min(b.y, c.y));
+        _min.z = std::min(a.z, std::min(b.z, c.z));
+        _max.x = std::max(a.x, std::max(b.x, c.x));
+        _max.y = std::max(a.y, std::max(b.y, c.y));
+        _max.z = std::max(a.z, std::max(b.z, c.z));
+    }
+    
+    // 3d ball and 2d ball
+    AABB(Vec3d c, double r, bool ball){
+        if(ball){
+            _max = Vec3d(c.x + r, c.y + r, c.z + r);
+            _min = Vec3d(c.x - r, c.y - r, c.z - r);
+        }
+        else{
+            _max = Vec3d(c.x + r, c.y + r, c.z);
+            _min = Vec3d(c.x - r, c.y - r, c.z);
+        }
+    }
+    
+    // 3d cube and 2d square
+    AABB(Vec3d min, Vec3d max){
+        _max = max;
+        _min = min;
+    }
+    
+//    bool ObjectKDTreeNode::inside(Mesh *mesh) {
+//        Vec3d faceMin = mesh->min();
+//        Vec3d faceMax = mesh->max();
+//        return (faceMin.x < max.x || (faceMin.x == max.x && faceMin.x == faceMax.x))
+//        && (faceMax.x > min.x || (faceMax.x == min.x && faceMin.x == faceMax.x))
+//        && (faceMin.y < max.y || (faceMin.y == max.y && faceMin.y == faceMax.y))
+//        && (faceMax.y > min.y || (faceMax.y == min.y && faceMin.y == faceMax.y))
+//        && (faceMin.z < max.z || (faceMin.z == max.z && faceMin.z == faceMax.z))
+//        && (faceMax.z > min.z || (faceMax.z == min.z && faceMin.z == faceMax.z));
+//    }
+
+};
 
 class Mesh {
 public:
@@ -34,8 +85,6 @@ public:
                        ) = 0;
     virtual pair<double, Vec3d> intersect(Ray ray) = 0;
 };
-
-enum { TRIANGULAR_FACE, SPHERE_FACE, BEZIER_FACE } FACE_TYPES;
 
 class TriMesh : public Mesh {
 public:
@@ -123,6 +172,11 @@ public:
 class Sphere : public Object {
 public:
     Sphere(Vec3d c, double r, TextureMapper *texture, int brdf);
+};
+
+struct Ray {
+    Vec3d s; //source
+    Vec3d d; //direction
 };
 
 
