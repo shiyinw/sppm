@@ -66,7 +66,7 @@ void HitPointKDTree::update(HitPointKDTreeNode * p, Vec3d photon, Vec3d weight, 
         HitPoint *hp = p->hitpoint;
         double factor = (hp->n * ALPHA + ALPHA) / (hp->n * ALPHA + 1.);
         Vec3d dr = d - hp->norm * (2 * dot(d, hp->norm));
-        double rho = hp->brdf.rho_d + hp->brdf.rho_s * pow(dot(dr, hp->d), hp->brdf.phong_s);
+        double rho = hp->brdf.rho_d + hp->brdf.rho_s * pow(dot(dr, hp->dir), hp->brdf.phong_s);
         if (rho < 0) rho = 0;
         else if (rho > 1) rho = 1;
         hp->n++;

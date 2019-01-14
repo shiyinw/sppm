@@ -46,6 +46,12 @@ public:
     void print() const {
         printf("%.5lf %.5lf %.5lf\n", x, y, z);
     }
+    
+    void assign(Vec3d &a){
+        this->x = a.x;
+        this->y = a.y;
+        this->z = a.z;
+    }
 };
 
 Vec3d operator+(const Vec3d &a, const Vec3d &b);

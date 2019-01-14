@@ -27,18 +27,16 @@ public:
 class TextureMapper {
     Texture *texture;
     Vec3d color;
+    Vec3d fx, fy;
+    double bx, by;
     double xx, xy, xz, xb, yx, yy, yz, yb;
 public:
-    TextureMapper(Texture *texture, double xx, double xy, double xz, double xb, double yx, double yy, double yz, double yb) {
+    TextureMapper(Texture *texture, Vec3d fx, Vec3d fy, double bx, double by) {
         this->texture = texture;
-        this->xx = xx;
-        this->xy = xy;
-        this->xz = xz;
-        this->xb = xb;
-        this->yx = yx;
-        this->yy = yy;
-        this->yz = yz;
-        this->yb = yb;
+        this->bx = bx;
+        this->by = by;
+        this->fx.assign(fx);
+        this->fy.assign(fy);
     }
     TextureMapper(Vec3d color) {
         this->texture = nullptr;

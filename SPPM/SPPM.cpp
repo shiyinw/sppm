@@ -13,6 +13,7 @@
 using namespace std;
 
 #define BUFFER_SIZE 1024
+#define APERTURE 1.5e-3 //1.5mm
 
 struct Ray;
 
@@ -42,18 +43,26 @@ void SPPM::render(int numRounds) {
         printf("Start ray tracing......\n");
         for (int u = 0; u < w; ++u) {
             for (int v = 0; v < h; ++v) {
+                
+                // the pixel on canvas
                 Vec3d p(double(u - cx) / w / fx, double(v - cy) / h / fy, 0);
+                
+                // ray from camera to the pixel
                 Ray ray;
                 ray.s = s;
                 ray.d = p - s;
+                
+                // depth of focus
                 double t = focusPlane.intersectPlane(ray);
                 Vec3d focusP = ray.s + ray.d * t;
                 double theta = randomdist(0, 2 * M_PI);
-                ray.s = ray.s + Vec3d(cos(theta), sin(theta), 0) * aperture;
+                ray.s = ray.s + Vec3d(cos(theta), sin(theta), 0) * APERTURE;
                 ray.d = focusP - ray.s;
                 ray.d.normalize();
+                
+                // initialize photons
                 (*hitpoints)[u * h + v]->valid = false;
-                (*hitpoints)[u * h + v]->d = ray.d * -1;
+                (*hitpoints)[u * h + v]->dir = ray.d * -1;
                 scene->trace(ray, Vec3d(1, 1, 1), 1, (long long)round * (photon + w * h) + u * h + v, (*hitpoints)[u * h + v]);
             }
         }
@@ -69,7 +78,7 @@ void SPPM::render(int numRounds) {
     }
 }
 
-void SPPM::save(char *filename1, char *filename2) {
+void SPPM::save(char *filename1, char *filename2=NULL) {
     for (int u = 0; u < w; ++u)
         for (int v = 0; v < h; ++v) {
             HitPoint *hp = (*hitpoints)[u * h + v];

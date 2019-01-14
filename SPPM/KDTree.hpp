@@ -23,7 +23,7 @@ class HitPoint {
 public:
     Vec3d p;
     Vec3d weight, flux, fluxLight;
-    Vec3d d, norm;
+    Vec3d dir, norm;
     int n;
     BRDF brdf;
     double r2;

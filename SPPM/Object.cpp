@@ -108,14 +108,13 @@ pair<double, Vec3d> TriMesh::intersect(Ray ray) {
     t /= n;
     beta /= n;
     gamma /= n;
-    if (!(-EPSILON <= beta && beta <= 1 + EPSILON &&
-          -EPSILON <= gamma && gamma <= 1 + EPSILON && beta + gamma <= 1 + EPSILON))
+    if (!(-EPSILON <= beta && beta <= 1 + EPSILON && -EPSILON <= gamma && gamma <= 1 + EPSILON && beta + gamma <= 1 + EPSILON))
         t = -1;
     
     Vec3d norm = cross(*b - *a, *c - *a);
-    if (dot(norm, ray.d) > 0) norm = norm * -1;
+    if (dot(norm, ray.d) > 0)
+        norm = norm * -1;
     norm.normalize();
-    
     return make_pair(t, norm);
 }
 
@@ -157,6 +156,7 @@ pair<double, Vec3d> CircleMesh::intersect(Ray ray) {
     else return make_pair(-1, Vec3d(0, 0, 0));
 }
 
+
 Sphere::Sphere(Vec3d c, double r, TextureMapper *texture, int brdf) {
     numVertexes = 0;
     numFaces = 1;
@@ -164,4 +164,13 @@ Sphere::Sphere(Vec3d c, double r, TextureMapper *texture, int brdf) {
         new SphereMesh(c, r, texture, brdf)
     };
     center = new Vec3d(c);
+}
+
+
+pair<double, Vec3d> intersect(Ray ray){
+    return make_pair(1, ray.s);
+}
+
+double intersectPlane(Ray ray){
+    return 1;
 }

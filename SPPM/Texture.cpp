@@ -35,8 +35,8 @@ Vec3d Texture::query(double x, double y) {
 Vec3d TextureMapper::query(Vec3d p) {
     if (!texture)
         return color;
-    double x = xx * p.x + xy * p.y + xz * p.z + xb;
-    double y = yx * p.x + yy * p.y + yz * p.z + yb;
+    double x = dot(this->fx, p) + bx;
+    double y = dot(this->fy, p) + by;
     return texture->query(x, y);
 }
 

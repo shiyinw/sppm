@@ -83,6 +83,26 @@ public:
     virtual void updateAABB() = 0;
 };
 
+class CylinderMesh : public Mesh{
+public:
+    Vec3d *c;
+    double r, h;
+    CylinderMesh(Vec3d *c, double r, double h, TextureMapper *image, int brdf=0){
+        this->c = c;
+        this->r = r;
+        this->h = h;
+        this->texture = image;
+        this->brdf = brdf;
+        this->aabb = new AABB(Vec3d(c->x-r, c->y-r, c->z), Vec3d(c->x+r, c->y+r, c->z+h));
+    }
+    pair<double, Vec3d> intersect(Ray ray);
+    double intersectPlane(Ray ray);
+    void updateAABB(){
+        this->aabb = new AABB(Vec3d(this->c->x - this->r, this->c->y - this->r, this->c->z),
+                              Vec3d(this->c->x + this->r, this->c->y + this->r, this->c->z + this->h));
+    }
+};
+
 class TriMesh : public Mesh {
 public:
     Vec3d *a, *b, *c;
