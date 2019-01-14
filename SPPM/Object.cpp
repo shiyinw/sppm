@@ -51,6 +51,33 @@ void Object::importPly(char *filename,  TextureMapper *texture, int brdf) {
     fprintf(stderr, "Imported object %s: %d vertexes and %d faces\n", filename, numVertexes, numFaces);
 }
 
+void Object::importObj(char *filename,  TextureMapper *texture, int brdf) {
+    FILE *file = fopen(filename, "r");
+    char buffer[BUFFER_SIZE];
+    numVertexes = numFaces = 0;
+    fscanf(file, "%d %d", &numVertexes, &numFaces);
+    vertexes = new Vec3d*[numVertexes];
+    meshes = new Mesh*[numFaces];
+
+    cout<<numVertexes<<" "<<numFaces<<endl;
+    
+    char type;
+    double a, b, c;
+    int d, e, f;
+    
+    for (int i = 0; i < numVertexes; i++) {
+        fscanf(file, "\n%c %lf %lf %lf", &type, &a, &b, &c);
+        vertexes[i] = new Vec3d(a, b, c);
+    }
+    
+    for (int i = 0; i < numFaces; i++) {
+        fscanf(file, "\n%c %d %d %d", &type, &d, &e, &f);
+        meshes[i] = new TriMesh(vertexes[d-1], vertexes[e-1], vertexes[f-1], texture, brdf);
+    }
+    fclose(file);
+    fprintf(stderr, "Imported object %s: %d vertexes and %d faces\n", filename, numVertexes, numFaces);
+}
+
 
 void Object::calcCenter() {
     center = new Vec3d(0, 0, 0);

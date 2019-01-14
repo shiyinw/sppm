@@ -180,6 +180,7 @@ public:
         center = nullptr;
     }
     void importPly(char *filename, TextureMapper *texture, int brdf);
+    void importObj(char *filename, TextureMapper *texture, int brdf);
     void calcCenter();
     void printBox();
     void scale(double fxx, double fxy, double fxz, double fxb,

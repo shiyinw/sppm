@@ -108,13 +108,22 @@ Object* genLight(Vec3d p, double r) {
 Scene *sceneBox() {
     Object *bunny = new Object;
     bunny->importPly((char*)"objects/bunny.ply",  new TextureMapper(Vec3d(0.4, 0.8, 0.8)), STANFORD_MODEL);
-
     bunny->scale(2.8, 0, 0, 0.24,
                  0, 2.8, 0, -0.09 - 0.5,
                  0, 0, -2.8, 0.12
                  );
     bunny->rotXZ(15 * M_PI / 180);
     bunny->center->print();
+    
+    
+    Object *relic = new Object;
+    relic->importObj((char*)"objects/relic.obj",  new TextureMapper(Vec3d(0.4, 0.8, 0.8)), STANFORD_MODEL);
+    relic->scale(2.8, 0, 0, 0.24,
+                 0, 2.8, 0, -0.09 - 0.5,
+                 0, 0, -2.8, 0.12
+                 );
+    relic->rotXZ(15 * M_PI / 180);
+    relic->center->print();
     
     Object *water = new Object;
     water->importPly((char*)"objects/water.ply",  new TextureMapper(Vec3d(1, 1, 1)), WATER);
