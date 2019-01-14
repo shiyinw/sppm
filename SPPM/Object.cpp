@@ -49,17 +49,16 @@ void Object::importPly(char *filename,  TextureMapper *texture, int brdf) {
     }
     fclose(file);
     fprintf(stderr, "Imported object %s: %d vertexes and %d faces\n", filename, numVertexes, numFaces);
+    updateAABB();
+    calcCenter();
 }
 
 void Object::importObj(char *filename,  TextureMapper *texture, int brdf) {
     FILE *file = fopen(filename, "r");
-    char buffer[BUFFER_SIZE];
     numVertexes = numFaces = 0;
     fscanf(file, "%d %d", &numVertexes, &numFaces);
     vertexes = new Vec3d*[numVertexes];
     meshes = new Mesh*[numFaces];
-
-    cout<<numVertexes<<" "<<numFaces<<endl;
     
     char type;
     double a, b, c;
@@ -72,10 +71,30 @@ void Object::importObj(char *filename,  TextureMapper *texture, int brdf) {
     
     for (int i = 0; i < numFaces; i++) {
         fscanf(file, "\n%c %d %d %d", &type, &d, &e, &f);
+        // obj file start with indice 1
         meshes[i] = new TriMesh(vertexes[d-1], vertexes[e-1], vertexes[f-1], texture, brdf);
     }
     fclose(file);
     fprintf(stderr, "Imported object %s: %d vertexes and %d faces\n", filename, numVertexes, numFaces);
+    updateAABB();
+    calcCenter();
+}
+
+
+void Object::updateAABB() {
+    Vec3d min(1e100, 1e100, 1e100);
+    Vec3d max = min * -1;
+    for (int i = 0; i < numVertexes; ++i) {
+        min.x = std::min(vertexes[i]->x, min.x);
+        min.y = std::min(vertexes[i]->y, min.y);
+        min.z = std::min(vertexes[i]->z, min.z);
+        max.x = std::max(vertexes[i]->x, max.x);
+        max.y = std::max(vertexes[i]->y, max.y);
+        max.z = std::max(vertexes[i]->z, max.z);
+    }
+    aabb->_min = min;
+    aabb->_max = max;
+    aabb->_center = (aabb->_min + aabb->_max)/2;
 }
 
 
@@ -86,36 +105,33 @@ void Object::calcCenter() {
     *center = *center / numVertexes;
 }
 
-void Object::printBox() {
-    Vec3d min(1e100, 1e100, 1e100);
-    Vec3d max = min * -1;
-    for (int i = 0; i < numFaces; ++i) {
-        min = ::min(min, meshes[i]->aabb->_min);
-        max = ::max(max, meshes[i]->aabb->_max);
-    }
-    min.print();
-    max.print();
-}
-
-void Object::scale(
-                   double fxx, double fxy, double fxz, double fxb,
-                   double fyx, double fyy, double fyz, double fyb,
-                   double fzx, double fzy, double fzz, double fzb) {
+void Object::locate(Vec3d locate_min, Vec3d locate_max){
+    updateAABB();
+    Vec3d ideal_center = (locate_min + locate_max)/2;
+    Vec3d current_center = this->aabb->_center;
+    Vec3d current_size = this->aabb->_max - this->aabb->_min;
+    Vec3d ideal_size = locate_max - locate_min;
+    double scale_x = (current_size.x>0) ? ideal_size.x/current_size.x : 1;
+    double scale_y = (current_size.y>0) ? ideal_size.y/current_size.y : 1;
+    double scale_z = (current_size.z>0) ? ideal_size.z/current_size.z : 1;
+    
+    Vec3d b = ideal_center - current_center * Vec3d(scale_x, scale_y, scale_z);
     for (int i = 0; i < numVertexes; ++i) {
-        Vec3d ver = *vertexes[i];
-        vertexes[i]->x = fxx * ver.x + fxy * ver.y + fxz * ver.z + fxb;
-        vertexes[i]->y = fyx * ver.x + fyy * ver.y + fyz * ver.z + fyb;
-        vertexes[i]->z = fzx * ver.x + fzy * ver.y + fzz * ver.z + fzb;
+        vertexes[i]->x = vertexes[i]->x * scale_x + b.x;
+        vertexes[i]->y = vertexes[i]->y * scale_y + b.y;
+        vertexes[i]->z = vertexes[i]->z * scale_z + b.z;
     }
-    for (int i = 0; i < numFaces; ++i){
-        meshes[i]->scale(fxx, fxy, fxz, fxb, fyx, fyy, fyz, fyb, fzx, fzy, fzz, fzb);
+    for (int i = 0; i< numFaces; ++i){
         meshes[i]->updateAABB();
     }
-    calcCenter();
+    this->updateAABB();
 }
+
+
 
 void Object::rotXZ(double theta) {
     calcCenter();
+    updateAABB();
     for (int i = 0; i < numVertexes; ++i) {
         Vec3d _d = *vertexes[i] - *center;
         *vertexes[i] = *center + Vec3d(cos(theta) * _d.x - sin(theta) * _d.z,  _d.y, sin(theta) * _d.x + cos(theta) * _d.z);
@@ -137,7 +153,6 @@ pair<double, Vec3d> TriMesh::intersect(Ray ray) {
     gamma /= n;
     if (!(-EPSILON <= beta && beta <= 1 + EPSILON && -EPSILON <= gamma && gamma <= 1 + EPSILON && beta + gamma <= 1 + EPSILON))
         t = -1;
-    
     Vec3d norm = cross(*b - *a, *c - *a);
     if (dot(norm, ray.d) > 0)
         norm = norm * -1;
@@ -191,13 +206,9 @@ Sphere::Sphere(Vec3d c, double r, TextureMapper *texture, int brdf) {
         new SphereMesh(c, r, texture, brdf)
     };
     center = new Vec3d(c);
-}
-
-
-pair<double, Vec3d> intersect(Ray ray){
-    return make_pair(1, ray.s);
-}
-
-double intersectPlane(Ray ray){
-    return 1;
+    this->aabb->_center = c;
+    this->aabb->_max = c + Vec3d(r, r, r);
+    this->aabb->_min = c + Vec3d(-r, -r, -r);
+    this->c = c;
+    this->r = r;
 }

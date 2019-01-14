@@ -56,10 +56,6 @@ public:
     void update(HitPointKDTreeNode *p, Vec3d photon, Vec3d weight, Vec3d d);
 };
 
-bool cmpHitPointX(HitPoint *a, HitPoint *b);
-bool cmpHitPointY(HitPoint *a, HitPoint *b);
-bool cmpHitPointZ(HitPoint *a, HitPoint *b);
-
 class ObjectKDTreeNode {
 public:
     Vec3d min, max;

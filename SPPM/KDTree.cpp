@@ -22,12 +22,20 @@ HitPointKDTreeNode* HitPointKDTree::build(int l, int r, int d) {
         p->maxr2 = max(p->maxr2, hitpoints[i]->r2);
     }
     int m = (l + r) >> 1;
-    if (d == 0)
-        nth_element(hitpoints + l, hitpoints + m, hitpoints + r + 1, cmpHitPointX);
-    else if (d == 1)
-        nth_element(hitpoints + l, hitpoints + m, hitpoints + r + 1, cmpHitPointY);
-    else
-        nth_element(hitpoints + l, hitpoints + m, hitpoints + r + 1, cmpHitPointZ);
+    switch(d){
+        case 0:
+            nth_element(hitpoints + l, hitpoints + m, hitpoints + r + 1, [](HitPoint *a, HitPoint *b){return a->p.x < b->p.x;});
+            break;
+        case 1:
+            nth_element(hitpoints + l, hitpoints + m, hitpoints + r + 1, [](HitPoint *a, HitPoint *b){return a->p.y < b->p.y;});
+            break;
+        case 2:
+            nth_element(hitpoints + l, hitpoints + m, hitpoints + r + 1, [](HitPoint *a, HitPoint *b){return a->p.z < b->p.z;});
+            break;
+        default:
+            printf("KD axis error\n");
+            exit(1);
+    }
     p->hitpoint = hitpoints[m];
     p->ls = (l <= m - 1)? build(l, m - 1, (d + 1) % 3):nullptr;
     p->rs = (m + 1 <= r)? build(m + 1, r, (d + 1) % 3):nullptr;
@@ -82,25 +90,10 @@ void HitPointKDTree::update(HitPointKDTreeNode * p, Vec3d photon, Vec3d weight, 
         p->maxr2 = p->rs->hitpoint->r2;
 }
 
-bool cmpHitPointX(HitPoint *a, HitPoint *b) {
-    return a->p.x < b->p.x;
-}
-
-bool cmpHitPointY(HitPoint *a, HitPoint *b) {
-    return a->p.y < b->p.y;
-}
-
-bool cmpHitPointZ(HitPoint *a, HitPoint *b) {
-    return a->p.z < b->p.z;
-}
-
 
 bool ObjectKDTreeNode::inside(Mesh *mesh) {
     Vec3d faceMin = mesh->aabb->_min;
     Vec3d faceMax = mesh->aabb->_max;
-    
-//    Vec3d faceMin = mesh->min();
-//    Vec3d faceMax = mesh->max();
     
     for(int i=0; i<3; i++){
         if(!(faceMin._p[i] < max._p[i] || (faceMin._p[i] == max._p[i] && faceMin._p[i] == faceMax._p[i])))

@@ -29,7 +29,6 @@ class TextureMapper {
     Vec3d color;
     Vec3d fx, fy;
     double bx, by;
-    double xx, xy, xz, xb, yx, yy, yz, yb;
 public:
     TextureMapper(Texture *texture, Vec3d fx, Vec3d fy, double bx, double by) {
         this->texture = texture;

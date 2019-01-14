@@ -32,6 +32,7 @@ void SPPM::render(int numRounds) {
         
         // save checkpoints
         if (round%1==0 && round!=0) {
+            printf("Start saving......\n");
             char filename1[100], filename2[100];
             sprintf(filename1, "checkpoints/%d_image.ppm", round);
             sprintf(filename2, "checkpoints/%d_hitpoints.txt", round);
@@ -100,19 +101,19 @@ void SPPM::save(char *filename1, char *filename2=NULL) {
     fclose(file1);
     
     //p, weight, flux, fluxLight, d, norm, n, brdf, r2
-    FILE *file2 = fopen(filename2, "w");
-    for (int i = 0; i < h; i++) {
-        for (int j = 0; j < w; j++){
-            fprintf(file2, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %d %lf\n",
-                    (*hitpoints)[i*w+j]->p.x, (*hitpoints)[i*w+j]->p.y, (*hitpoints)[i*w+j]->p.z,
-                    (*hitpoints)[i*w+j]->weight.x, (*hitpoints)[i*w+j]->weight.y, (*hitpoints)[i*w+j]->weight.z,
-                    (*hitpoints)[i*w+j]->flux.x, (*hitpoints)[i*w+j]->flux.y, (*hitpoints)[i*w+j]->flux.z,
-                    (*hitpoints)[i*w+j]->fluxLight.x, (*hitpoints)[i*w+j]->fluxLight.y, (*hitpoints)[i*w+j]->fluxLight.z,
-                    (*hitpoints)[i*w+j]->norm.x, (*hitpoints)[i*w+j]->norm.y, (*hitpoints)[i*w+j]->norm.z,
-                    (*hitpoints)[i*w+j]->n, (*hitpoints)[i*w+j]->r2);
-        }
-    }
-    fclose(file2);
+//    FILE *file2 = fopen(filename2, "w");
+//    for (int i = 0; i < h; i++) {
+//        for (int j = 0; j < w; j++){
+//            fprintf(file2, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %d %lf\n",
+//                    (*hitpoints)[i*w+j]->p.x, (*hitpoints)[i*w+j]->p.y, (*hitpoints)[i*w+j]->p.z,
+//                    (*hitpoints)[i*w+j]->weight.x, (*hitpoints)[i*w+j]->weight.y, (*hitpoints)[i*w+j]->weight.z,
+//                    (*hitpoints)[i*w+j]->flux.x, (*hitpoints)[i*w+j]->flux.y, (*hitpoints)[i*w+j]->flux.z,
+//                    (*hitpoints)[i*w+j]->fluxLight.x, (*hitpoints)[i*w+j]->fluxLight.y, (*hitpoints)[i*w+j]->fluxLight.z,
+//                    (*hitpoints)[i*w+j]->norm.x, (*hitpoints)[i*w+j]->norm.y, (*hitpoints)[i*w+j]->norm.z,
+//                    (*hitpoints)[i*w+j]->n, (*hitpoints)[i*w+j]->r2);
+//        }
+//    }
+//    fclose(file2);
     fprintf(stderr, "checkpoint %s and %s saved\n", filename1, filename2);
 }
 

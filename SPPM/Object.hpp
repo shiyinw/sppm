@@ -10,7 +10,6 @@
 #define Object_hpp
 
 #include <stdio.h>
-//#include "Config.h"
 #include "Texture.hpp"
 #include "BRDF.hpp"
 
@@ -66,6 +65,13 @@ public:
         }
         return true;
     }
+    
+    void print(){
+        printf("AABB\n");
+        _min.print();
+        _center.print();
+        _max.print();
+    }
 };
 
 class Mesh {
@@ -74,11 +80,6 @@ public:
     TextureMapper *texture;
     int brdf;
     AABB *aabb;
-    virtual void scale(
-                       double fxx, double fxy, double fxz, double fxb,
-                       double fyx, double fyy, double fyz, double fyb,
-                       double fzx, double fzy, double fzz, double fzb
-                       ) = 0;
     virtual pair<double, Vec3d> intersect(Ray ray) = 0;
     virtual void updateAABB() = 0;
 };
@@ -114,11 +115,6 @@ public:
         this->brdf = brdf;
         this->aabb = new AABB(*a, *b, *c);
     }
-    void scale(
-               double fxx, double fxy, double fxz, double fxb,
-               double fyx, double fyy, double fyz, double fyb,
-               double fzx, double fzy, double fzz, double fzb
-               ){}
     pair<double, Vec3d> intersect(Ray ray);
     double intersectPlane(Ray ray);
     void updateAABB(){
@@ -137,11 +133,6 @@ public:
         this->brdf = brdf;
         this->aabb = new AABB(c, r, true);
     }
-    void scale(
-               double fxx, double fxy, double fxz, double fxb,
-               double fyx, double fyy, double fyz, double fyb,
-               double fzx, double fzy, double fzz, double fzb
-               ){}
     pair<double, Vec3d> intersect(Ray ray);
     void updateAABB(){
         this->aabb = new AABB(c, r, true);
@@ -159,11 +150,6 @@ public:
         this->brdf = brdf;
         this->aabb = new AABB(c, r, false);
     }
-    void scale(
-               double fxx, double fxy, double fxz, double fxb,
-               double fyx, double fyy, double fyz, double fyb,
-               double fzx, double fzy, double fzz, double fzb
-               ){}
     pair<double, Vec3d> intersect(Ray ray);
     void updateAABB(){
         this->aabb = new AABB(c, r, false);
@@ -175,24 +161,28 @@ public:
     Vec3d** vertexes;
     Vec3d* center;
     Mesh** meshes;
+    AABB* aabb;
     int numVertexes, numFaces;
     Object() {
-        center = nullptr;
+        aabb = new AABB(Vec3d(-1e100, -1e100, -1e100), Vec3d(1e100, 1e100, 1e100));
+         center = nullptr;
     }
     void importPly(char *filename, TextureMapper *texture, int brdf);
     void importObj(char *filename, TextureMapper *texture, int brdf);
+    void updateAABB();
     void calcCenter();
-    void printBox();
-    void scale(double fxx, double fxy, double fxz, double fxb,
-               double fyx, double fyy, double fyz, double fyb,
-               double fzx, double fzy, double fzz, double fzb
-               );
+    void locate(Vec3d locate_min, Vec3d locate_max);
     void rotXZ(double theta);
 };
 
 class Sphere : public Object {
 public:
+    Vec3d c;
+    double r;
     Sphere(Vec3d c, double r, TextureMapper *texture, int brdf);
+    void updateAABB(){
+        this->aabb->_center = this->c;
+    }
 };
 
 struct Ray {
