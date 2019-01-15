@@ -32,7 +32,8 @@ public:
     Scene(Vec3d _sourceP, double _sourceR, Vec3d _sourceN) :
     sourceP(_sourceP), sourceR(_sourceR), sourceN(_sourceN) { hitpointsKDTree = nullptr; }
     Ray generateRay(long long i);
-    void trace(const Ray &ray, const Vec3d &weight, int depth, long long i, HitPoint *hp = nullptr);
+    void photonTrace(const Ray &ray, const Vec3d &weight, int depth, long long i);
+    void rayTrace(const Ray &ray, const Vec3d &weight, int depth, long long i, HitPoint *hp);
     void initializeHitpointKDTree(std::vector<HitPoint*>* hitpoints);
     void initializeObjectKDTree();
 };

@@ -36,7 +36,10 @@ void SPPM::render(int numRounds) {
             char filename1[100], filename2[100];
             sprintf(filename1, "checkpoints/%d_image.ppm", round);
             sprintf(filename2, "checkpoints/%d_hitpoints.txt", round);
-            save(filename1, filename2);
+            if(round%10==0)
+                save(filename1, filename2);
+            else
+                save(filename1, NULL);
         }
         
         printf("Round %d/%d:\n", round + 1, numRounds);
@@ -64,7 +67,7 @@ void SPPM::render(int numRounds) {
                 // initialize photons
                 (*hitpoints)[u * h + v]->valid = false;
                 (*hitpoints)[u * h + v]->dir = ray.d * -1;
-                scene->trace(ray, Vec3d(1, 1, 1), 1, (long long)round * (photon + w * h) + u * h + v, (*hitpoints)[u * h + v]);
+                scene->rayTrace(ray, Vec3d(1, 1, 1), 1, (long long)round * (photon + w * h) + u * h + v, (*hitpoints)[u * h + v]);
             }
         }
         
@@ -74,7 +77,7 @@ void SPPM::render(int numRounds) {
         printf("Start photon mapping......\n");
         for (int i = 0; i < photon; ++i) {
             Ray ray = scene->generateRay((long long)round * photon + (round + 1) * w * h + i);
-            scene->trace(ray, weight_init * light, 1, (long long)round * photon + i);
+            scene->photonTrace(ray, weight_init * light, 1, (long long)round * photon + i);
         }
     }
 }
@@ -99,21 +102,23 @@ void SPPM::save(char *filename1, char *filename2=NULL) {
         fprintf(file1, "\n");
     }
     fclose(file1);
-    
+    if(filename2==NULL){
+        return;
+    }
     //p, weight, flux, fluxLight, d, norm, n, brdf, r2
-//    FILE *file2 = fopen(filename2, "w");
-//    for (int i = 0; i < h; i++) {
-//        for (int j = 0; j < w; j++){
-//            fprintf(file2, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %d %lf\n",
-//                    (*hitpoints)[i*w+j]->p.x, (*hitpoints)[i*w+j]->p.y, (*hitpoints)[i*w+j]->p.z,
-//                    (*hitpoints)[i*w+j]->weight.x, (*hitpoints)[i*w+j]->weight.y, (*hitpoints)[i*w+j]->weight.z,
-//                    (*hitpoints)[i*w+j]->flux.x, (*hitpoints)[i*w+j]->flux.y, (*hitpoints)[i*w+j]->flux.z,
-//                    (*hitpoints)[i*w+j]->fluxLight.x, (*hitpoints)[i*w+j]->fluxLight.y, (*hitpoints)[i*w+j]->fluxLight.z,
-//                    (*hitpoints)[i*w+j]->norm.x, (*hitpoints)[i*w+j]->norm.y, (*hitpoints)[i*w+j]->norm.z,
-//                    (*hitpoints)[i*w+j]->n, (*hitpoints)[i*w+j]->r2);
-//        }
-//    }
-//    fclose(file2);
+    FILE *file2 = fopen(filename2, "w");
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++){
+            fprintf(file2, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %d %lf\n",
+                    (*hitpoints)[i*w+j]->p.x, (*hitpoints)[i*w+j]->p.y, (*hitpoints)[i*w+j]->p.z,
+                    (*hitpoints)[i*w+j]->weight.x, (*hitpoints)[i*w+j]->weight.y, (*hitpoints)[i*w+j]->weight.z,
+                    (*hitpoints)[i*w+j]->flux.x, (*hitpoints)[i*w+j]->flux.y, (*hitpoints)[i*w+j]->flux.z,
+                    (*hitpoints)[i*w+j]->fluxLight.x, (*hitpoints)[i*w+j]->fluxLight.y, (*hitpoints)[i*w+j]->fluxLight.z,
+                    (*hitpoints)[i*w+j]->norm.x, (*hitpoints)[i*w+j]->norm.y, (*hitpoints)[i*w+j]->norm.z,
+                    (*hitpoints)[i*w+j]->n, (*hitpoints)[i*w+j]->r2);
+        }
+    }
+    fclose(file2);
     fprintf(stderr, "checkpoint %s and %s saved\n", filename1, filename2);
 }
 

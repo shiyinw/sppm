@@ -21,7 +21,7 @@ using namespace std;
 
 Object* genBox(){
     Texture *desert = new Texture((char*)"objects/desert.ppm");
-    Object *wall = new Sphere(Vec3d(0, 0, 0), 2, new TextureMapper(desert, Vec3d(0, -1, 0), Vec3d(1/1.2, 0, 0), 0.5, 0.5), GLASS);
+    Object *wall = new Sphere(Vec3d(0, 0, 0), 1, new TextureMapper(desert, Vec3d(0, -1, 0), Vec3d(1/1.2, 0, 0), 0.5, 0.5), GLASS);
     return wall;
 }
 
@@ -75,29 +75,6 @@ Object* genWalls() {
     return walls;
 }
 
-Object* genDesk() {
-    
-    TextureMapper *color = new TextureMapper(Vec3d(1, 1, 1));
-    
-    Object *desk = new Object;
-    desk->numVertexes = 4;
-    desk->numFaces = 2;
-    const double theta = 45 / 180. * M_PI;
-    desk->vertexes = new Vec3d*[desk->numVertexes]{
-        new Vec3d(-10, 0 - 10 * sin(theta), -10 * cos(theta)),
-        new Vec3d(-10, 0 + 10 * sin(theta), 10 * cos(theta)),
-        new Vec3d(10, 0 + 10 * sin(theta), 10 *  cos(theta)),
-        new Vec3d(10, 0 - 10 * sin(theta), -10 * cos(theta))
-    };
-    Vec3d** vertexes = desk->vertexes;
-    desk->meshes = new Mesh*[desk->numFaces]{
-        // bottom
-        new TriMesh(vertexes[0], vertexes[1], vertexes[2], color, DESK),
-        new TriMesh(vertexes[0], vertexes[2], vertexes[3], color, DESK),
-    };
-    return desk;
-}
-
 Object* genLight(Vec3d p, double r) {
     Object *light = new Object;
     light->numFaces = 1;
@@ -120,15 +97,9 @@ Scene *sceneBox() {
 //    relic->rotXZ(15 * M_PI / 180);
     relic->aabb->print();
     
-//    Object *water = new Object;
-//    water->importPly((char*)"objects/water.ply",  new TextureMapper(Vec3d(1, 1, 1)), WATER);
-//    water->locate(Vec3d(-1.2, 0.8, -2.5), Vec3d(1.2, 0.9, 1.5));
-//    water->aabb->print();
-    
     Scene *scene = new Scene(Vec3d(0.0, 0.5 - 1e-5, 0.1), 0.2, Vec3d(0, -1, 0));
     scene->addObject(relic);
     scene->addObject(bunny);
-    //scene->addObject(water);
     scene->addObject(genWalls());
     scene->addObject(genBox());
     scene->addObject(genLight(Vec3d(0, 0.5 - EPSILON, 0.1), 0.05));
@@ -140,13 +111,11 @@ Scene *sceneBox() {
 
 int main(int argc, char *argv[]) {
     Scene *scene = sceneBox();
-    //Scene *scene = sceneTeapot();
     
     SPPM *camera = new SPPM(1024, 768, scene, Vec3d(0, 0.15, -1), 200000);
     camera->setLens(0.684, 0.811, 1e-3, 1 + 0.09);
     
-    
-    //camera->load((char*)"checkpoints/11_image.ppm", (char*)"checkpoints/11_hitpoints.txt", 11);
+    //camera->load((char*)"checkpoints/11_hitpoints.txt", 11);
     
     camera -> render(2500);
     
