@@ -42,13 +42,11 @@ void Object::importPly(char *filename,  TextureMapper *texture, int brdf) {
     for (int i = 0; i < numFaces; ++i) {
         int n, a, b, c;
         fscanf(file, "%d", &n);
-        if (n != 3)
-            throw runtime_error("Only trianglar faces are supported!");
         fscanf(file, "%d%d%d", &a, &b, &c);
         meshes[i] = new TriMesh(vertexes[a], vertexes[b], vertexes[c], texture, brdf);
     }
     fclose(file);
-    fprintf(stderr, "Imported object %s: %d vertexes and %d faces\n", filename, numVertexes, numFaces);
+    fprintf(stderr, "%s: %d vertexes and %d meshes\n", filename, numVertexes, numFaces);
     updateAABB();
     calcCenter();
 }
@@ -75,7 +73,7 @@ void Object::importObj(char *filename,  TextureMapper *texture, int brdf) {
         meshes[i] = new TriMesh(vertexes[d-1], vertexes[e-1], vertexes[f-1], texture, brdf);
     }
     fclose(file);
-    fprintf(stderr, "Imported object %s: %d vertexes and %d faces\n", filename, numVertexes, numFaces);
+    fprintf(stderr, "%s: %d vertexes and %d meshes\n", filename, numVertexes, numFaces);
     updateAABB();
     calcCenter();
 }

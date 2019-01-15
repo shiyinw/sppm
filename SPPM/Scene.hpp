@@ -20,24 +20,20 @@ class HitPoint;
 struct Ray;
 
 class Scene {
-    std::vector<Object*> objects;
     std::vector<HitPoint*> hitpoints;
-    HitPointKDTree *hitpointsKDTree;
-    ObjectKDTree *objectKDTree;
     Vec3d sourceP, sourceN;
     double sourceR;
     Vec3d sampleReflectedRay(Vec3d norm, int depth, long long i, double s = 1);
 public:
+    std::vector<Object*> objects;
+    HitPointKDTree *hitpointsKDTree = nullptr;
+    ObjectKDTree *objectKDTree = nullptr;
     void addObject(Object* object);
-    Scene(Vec3d _sourceP, double _sourceR, Vec3d _sourceN) :
-    sourceP(_sourceP), sourceR(_sourceR), sourceN(_sourceN) { hitpointsKDTree = nullptr; }
+    Scene(Vec3d _sourceP, double _sourceR, Vec3d _sourceN) : sourceP(_sourceP), sourceR(_sourceR), sourceN(_sourceN) {}
     Ray generateRay(long long i);
-    void photonTrace(const Ray &ray, const Vec3d &weight, int depth, long long i);
-    void rayTrace(const Ray &ray, const Vec3d &weight, int depth, long long i, HitPoint *hp);
-    void initializeHitpointKDTree(std::vector<HitPoint*>* hitpoints);
-    void initializeObjectKDTree();
+    void photonTrace(const Ray &ray, const Vec3d &weight, int depth, long long power);
+    void rayTrace(const Ray &ray, const Vec3d &weight, int depth, HitPoint *hp);
 };
-
 
 
 #endif /* Scene_hpp */

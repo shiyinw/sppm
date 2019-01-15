@@ -45,7 +45,7 @@ Vec3d Scene::sampleReflectedRay(Vec3d norm, int depth, long long i, double s) {
     return (norm * cos(phi) + (u * cos(theta) + v * sin(theta)) * sin(phi)).normalize();
 }
 
-void Scene::rayTrace(const Ray &ray, const Vec3d &color, int depth, long long i, HitPoint *hp) {
+void Scene::rayTrace(const Ray &ray, const Vec3d &color, int depth, HitPoint *hp) {
     if (depth > MAX_DEPTH)
         return;
     double tMin = 1e100;
@@ -68,7 +68,7 @@ void Scene::rayTrace(const Ray &ray, const Vec3d &color, int depth, long long i,
         Ray ray;
         ray.d = dr;
         ray.s = p + ray.d * EPSILON;
-        rayTrace(ray, color * nextMesh->texture->query(p) * s, depth + 1, i, hp);
+        rayTrace(ray, color * nextMesh->texture->query(p) * s, depth + 1, hp);
         return;
     }
     action -= BRDFs[nextMesh->brdf].specular;
@@ -76,12 +76,12 @@ void Scene::rayTrace(const Ray &ray, const Vec3d &color, int depth, long long i,
     // diffuse
     if (BRDFs[nextMesh->brdf].diffuse > 0 && action <= BRDFs[nextMesh->brdf].diffuse) {
         hp->p = p;
-        hp->weight = color * nextMesh->texture->query(p) * s;
-        hp->fluxLight = hp->fluxLight + hp->weight * (nextMesh->brdf == LIGHT);
+        hp->color = color * nextMesh->texture->query(p) * s;
+        hp->fluxLight = hp->fluxLight + hp->color * (nextMesh->brdf == LIGHT);
         hp->brdf = BRDFs[nextMesh->brdf];
         hp->norm = norm;
         if (nextMesh->brdf == LIGHT) {
-            hp->fluxLight = hp->fluxLight + hp->weight;
+            hp->fluxLight = hp->fluxLight + hp->color;
             hp->valid = false;
         }
         else
@@ -113,35 +113,35 @@ void Scene::rayTrace(const Ray &ray, const Vec3d &color, int depth, long long i,
                 Ray rayout;
                 rayout.d = dr;
                 rayout.s = p + rayout.d * EPSILON;
-                rayTrace(ray, color * nextMesh->texture->query(p) * s, depth + 1, i, hp);
+                rayTrace(ray, color * nextMesh->texture->query(p) * s, depth + 1, hp);
             }
             else {
                 Ray rayout;
                 rayout.d = ray.d / refractiveIndex + norm * (cosThetaIn / refractiveIndex - cosThetaOut);
                 rayout.s = p + rayout.d * EPSILON;
-                rayTrace(rayout, color * nextMesh->texture->query(p) * s, depth + 1, i, hp);
+                rayTrace(rayout, color * nextMesh->texture->query(p) * s, depth + 1, hp);
             }
         }
         else { // total internal reflection
             Ray rayout;
             rayout.d = dr;
             rayout.s = p + rayout.d * EPSILON;
-            rayTrace(rayout, color * nextMesh->texture->query(p) * s, depth + 1, i, hp);
+            rayTrace(rayout, color * nextMesh->texture->query(p) * s, depth + 1, hp);
         }
     }
 }
 
-void Scene::photonTrace(const Ray &ray, const Vec3d &color, int depth, long long i) {
+void Scene::photonTrace(const Ray &ray, const Vec3d &color, int depth, long long power) {
     if (depth > MAX_DEPTH)
         return;
-    double tMin = 1e100;
+    double distance = 1e100;
     Mesh* nextMesh = nullptr;
     Vec3d norm;
     //search next mesh through KD Tree
-    objectKDTree->getIntersection(objectKDTree->root, ray, nextMesh, tMin, norm);
+    objectKDTree->getIntersection(objectKDTree->root, ray, nextMesh, distance, norm);
     
-    if (!nextMesh || tMin < SEARCH_RADIUS) return;
-    Vec3d p = ray.s + ray.d * tMin;
+    if (!nextMesh || distance < SEARCH_RADIUS) return;
+    Vec3d p = ray.s + ray.d * distance;
     
     // russian roulette
     double s = BRDFs[nextMesh->brdf].specular + BRDFs[nextMesh->brdf].diffuse + BRDFs[nextMesh->brdf].refraction;
@@ -153,7 +153,7 @@ void Scene::photonTrace(const Ray &ray, const Vec3d &color, int depth, long long
         Ray ray;
         ray.d = dr;
         ray.s = p + ray.d * EPSILON;
-        photonTrace(ray, color * nextMesh->texture->query(p) * s, depth + 1, i);
+        photonTrace(ray, color * nextMesh->texture->query(p) * s, depth + 1, power);
         return;
     }
     action -= BRDFs[nextMesh->brdf].specular;
@@ -164,21 +164,20 @@ void Scene::photonTrace(const Ray &ray, const Vec3d &color, int depth, long long
         // phong specular
         if (((double) rand() / (RAND_MAX)) <= BRDFs[nextMesh->brdf].rho_s) {
             Ray rayout;
-            rayout.d = sampleReflectedRay(dr, depth, i, BRDFs[nextMesh->brdf].phong_s);
+            rayout.d = sampleReflectedRay(dr, depth, power, BRDFs[nextMesh->brdf].phong_s);
             rayout.s = p + rayout.d * EPSILON;
-            
-            photonTrace(rayout, color * nextMesh->texture->query(p) * s, depth + 1, i);
+            photonTrace(rayout, color * nextMesh->texture->query(p) * s, depth + 1, power);
         }
         else {
             a -= BRDFs[nextMesh->brdf].rho_s;
             hitpointsKDTree->update(hitpointsKDTree->root, p, color, ray.d);
             Ray rayout;
-            rayout.d = sampleReflectedRay(norm, depth, i);
+            rayout.d = sampleReflectedRay(norm, depth, power);
             if (dot(ray.d, norm) < 0)
                 rayout.d = rayout.d * -1;
             if (a <= BRDFs[nextMesh->brdf].rho_d) {
                 rayout.s = p + rayout.d * EPSILON;
-                photonTrace(ray, color * nextMesh->texture->query(p) * s, depth + 1, i);
+                photonTrace(ray, color * nextMesh->texture->query(p) * s, depth + 1, power);
             }
         }
         return;
@@ -208,38 +207,20 @@ void Scene::photonTrace(const Ray &ray, const Vec3d &color, int depth, long long
                 Ray rayout;
                 rayout.d = dr;
                 rayout.s = p + rayout.d * EPSILON;
-                photonTrace(ray, color * nextMesh->texture->query(p) * s, depth + 1, i);
+                photonTrace(ray, color * nextMesh->texture->query(p) * s, depth + 1, power);
             }
             else {
                 Ray rayout;
                 rayout.d = ray.d / refractiveIndex + norm * (cosThetaIn / refractiveIndex - cosThetaOut);
                 rayout.s = p + rayout.d * EPSILON;
-                photonTrace(rayout, color * nextMesh->texture->query(p) * s, depth + 1, i);
+                photonTrace(rayout, color * nextMesh->texture->query(p) * s, depth + 1, power);
             }
         }
         else { // total internal reflection
             Ray rayout;
             rayout.d = dr;
             rayout.s = p + rayout.d * EPSILON;
-            photonTrace(rayout, color * nextMesh->texture->query(p) * s, depth + 1, i);
+            photonTrace(rayout, color * nextMesh->texture->query(p) * s, depth + 1, power);
         }
     }
-}
-
-void Scene::initializeHitpointKDTree(vector<HitPoint*>* hitpoints) {
-    if (hitpointsKDTree)
-        delete hitpointsKDTree;
-    hitpointsKDTree = new HitPointKDTree(hitpoints);
-    fprintf(stderr, "Hitpoint KD tree built\n");
-}
-
-void Scene::initializeObjectKDTree() {
-    vector<Mesh*> *meshes = new vector<Mesh*>;
-    for (auto object : objects) {
-        for (int i = 0; i < object->numFaces; ++i)
-            meshes->push_back(object->meshes[i]);
-    }
-    objectKDTree = new ObjectKDTree(meshes);
-    
-    fprintf(stderr, "Object KD tree built\n");
 }

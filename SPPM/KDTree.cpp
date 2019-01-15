@@ -62,7 +62,7 @@ HitPointKDTree::~HitPointKDTree() {
     delete[] hitpoints;
 }
 
-void HitPointKDTree::update(HitPointKDTreeNode * p, Vec3d photon, Vec3d weight, Vec3d d) {
+void HitPointKDTree::update(HitPointKDTreeNode * p, Vec3d photon, Vec3d color, Vec3d d) {
     if (!p) return;
     double mind = 0;
     for(int i=0; i< 3; i++){
@@ -79,10 +79,10 @@ void HitPointKDTree::update(HitPointKDTreeNode * p, Vec3d photon, Vec3d weight, 
         else if (rho > 1) rho = 1;
         hp->n++;
         hp->r2 *= factor;
-        hp->flux = (hp->flux + hp->weight * weight * rho) * factor;
+        hp->flux = (hp->flux + hp->color * color * rho) * factor;
     }
-    if (p->ls) update(p->ls, photon, weight, d);
-    if (p->rs) update(p->rs, photon, weight, d);
+    if (p->ls) update(p->ls, photon, color, d);
+    if (p->rs) update(p->rs, photon, color, d);
     p->maxr2 = p->hitpoint->r2;
     if (p->ls && p->ls->hitpoint->r2 > p->maxr2)
         p->maxr2 = p->ls->hitpoint->r2;
@@ -192,30 +192,31 @@ double ObjectKDTree::getCuboidIntersection(ObjectKDTreeNode *p, Ray ray) {
     else return -1e100;
 }
 
-void ObjectKDTree::getIntersection(ObjectKDTreeNode *p, Ray ray, Mesh* &nextMesh, double &tMin, Vec3d &norm) {
+void ObjectKDTree::getIntersection(ObjectKDTreeNode *p, Ray ray, Mesh* &nextMesh, double &distance, Vec3d &norm) {
     for (int i = 0; i < p->meshes->size(); ++i) {
         pair<double, Vec3d> r = (*p->meshes)[i]->intersect(ray);
         double t = r.first;
-        if (t > 0 && t < tMin) {
-            tMin = t;
+        if (t > 0 && t < distance) {
+            distance = t;
             nextMesh = (*p->meshes)[i];
             norm = r.second;
         }
     }
-    
     double tl = p->ls ? getCuboidIntersection(p->ls, ray) : 1e100;
     double tr = p->rs ? getCuboidIntersection(p->rs, ray) : 1e100;
+    
+    if(distance<=tr && distance<=tl)
+        return;
+    
     if (tl < tr) {
-        if (tMin <= tl) return;
-        if (p->ls) getIntersection(p->ls, ray, nextMesh, tMin, norm);
-        if (tMin <= tr) return;
-        if (p->rs) getIntersection(p->rs, ray, nextMesh, tMin, norm);
+        if (p->ls) getIntersection(p->ls, ray, nextMesh, distance, norm);
+        if (distance <= tr) return;
+        if (p->rs) getIntersection(p->rs, ray, nextMesh, distance, norm);
     }
     else {
-        if (tMin <= tr) return;
-        if (p->rs) getIntersection(p->rs, ray, nextMesh, tMin, norm);
-        if (tMin <= tl) return;
-        if (p->ls) getIntersection(p->ls, ray, nextMesh, tMin, norm);
+        if (p->rs) getIntersection(p->rs, ray, nextMesh, distance, norm);
+        if (distance <= tl) return;
+        if (p->ls) getIntersection(p->ls, ray, nextMesh, distance, norm);
     }
 }
 

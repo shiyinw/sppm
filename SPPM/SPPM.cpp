@@ -10,6 +10,7 @@
 #include "Scene.hpp"
 #include <iostream>
 #include <fstream>
+#include <ctime>
 using namespace std;
 
 #define BUFFER_SIZE 1024
@@ -18,18 +19,47 @@ using namespace std;
 struct Ray;
 
 void SPPM::render(int numRounds) {
-    
-    scene->initializeObjectKDTree();
-    int cx = w / 2, cy = h / 2;
+    vector<Mesh*> *meshes = new vector<Mesh*>;
+    for (auto object : scene->objects) {
+        for (int i = 0; i < object->numFaces; ++i)
+            meshes->push_back(object->meshes[i]);
+    }
+    scene->objectKDTree = new ObjectKDTree(meshes);
     
     TriMesh focusPlane(new Vec3d(0, 0, s.z + focus), new Vec3d(0, 1, s.z + focus), new Vec3d(1, 0, s.z + focus));
     
     light = Vec3d(1, 1, 1);
     const Vec3d weight_init = Vec3d(2.5, 2.5, 2.5);
     
+    // PASS1: ray tracing pass
+    printf("PASS1: Ray Tracing, Hitpoint KD Tree......\n");
+    for (int u = 0; u < w; ++u) {
+        for (int v = 0; v < h; ++v) {
+            Vec3d p((double(u)/double(w) - 0.5)/fx, (double(v)/double(h) - 0.5)/fy, 0);
+            Ray ray;
+            ray.s = s;
+            ray.d = p - s;
+            
+            // depth of focus
+            double t = focusPlane.intersectPlane(ray);
+            Vec3d focusP = ray.s + ray.d * t;
+            double theta = randomdist(0, 2 * M_PI);
+            ray.s = ray.s + Vec3d(cos(theta), sin(theta), 0) * APERTURE;
+            ray.d = focusP - ray.s;
+            ray.d.normalize();
+            
+            // initialize photons
+            (*hitpoints)[u * h + v]->valid = false;
+            (*hitpoints)[u * h + v]->dir = ray.d * -1;
+            scene->rayTrace(ray, Vec3d(1, 1, 1), 1, (*hitpoints)[u * h + v]);
+        }
+    }
+    scene->hitpointsKDTree = new HitPointKDTree(hitpoints);
+    
     // SPPM
+    printf("PASS2: Photon tracing......\n");
+    clock_t begin = clock();
     for (; round < numRounds; ++round) {
-        
         // save checkpoints
         if (round%1==0 && round!=0) {
             printf("Start saving......\n");
@@ -41,44 +71,11 @@ void SPPM::render(int numRounds) {
             else
                 save(filename1, NULL);
         }
-        
-        printf("Round %d/%d:\n", round + 1, numRounds);
-        // PASS1: ray tracing pass
-        printf("Start ray tracing......\n");
-        for (int u = 0; u < w; ++u) {
-            for (int v = 0; v < h; ++v) {
-                
-                // the pixel on canvas
-                Vec3d p(double(u - cx) / w / fx, double(v - cy) / h / fy, 0);
-                
-                // ray from camera to the pixel
-                Ray ray;
-                ray.s = s;
-                ray.d = p - s;
-                
-                // depth of focus
-                double t = focusPlane.intersectPlane(ray);
-                Vec3d focusP = ray.s + ray.d * t;
-                double theta = randomdist(0, 2 * M_PI);
-                ray.s = ray.s + Vec3d(cos(theta), sin(theta), 0) * APERTURE;
-                ray.d = focusP - ray.s;
-                ray.d.normalize();
-                
-                // initialize photons
-                (*hitpoints)[u * h + v]->valid = false;
-                (*hitpoints)[u * h + v]->dir = ray.d * -1;
-                scene->rayTrace(ray, Vec3d(1, 1, 1), 1, (long long)round * (photon + w * h) + u * h + v, (*hitpoints)[u * h + v]);
-            }
-        }
-        
-        scene->initializeHitpointKDTree(hitpoints);
-        
-        // photon tracing pass
-        printf("Start photon mapping......\n");
         for (int i = 0; i < photon; ++i) {
             Ray ray = scene->generateRay((long long)round * photon + (round + 1) * w * h + i);
             scene->photonTrace(ray, weight_init * light, 1, (long long)round * photon + i);
         }
+        printf("Round %d/%d, time %f\n", round + 1, numRounds, float(clock()-begin)/CLOCKS_PER_SEC);
     }
 }
 
@@ -103,6 +100,7 @@ void SPPM::save(char *filename1, char *filename2=NULL) {
     }
     fclose(file1);
     if(filename2==NULL){
+        fprintf(stderr, "image %s saved\n", filename1);
         return;
     }
     //p, weight, flux, fluxLight, d, norm, n, brdf, r2
@@ -111,7 +109,7 @@ void SPPM::save(char *filename1, char *filename2=NULL) {
         for (int j = 0; j < w; j++){
             fprintf(file2, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %d %lf\n",
                     (*hitpoints)[i*w+j]->p.x, (*hitpoints)[i*w+j]->p.y, (*hitpoints)[i*w+j]->p.z,
-                    (*hitpoints)[i*w+j]->weight.x, (*hitpoints)[i*w+j]->weight.y, (*hitpoints)[i*w+j]->weight.z,
+                    (*hitpoints)[i*w+j]->color.x, (*hitpoints)[i*w+j]->color.y, (*hitpoints)[i*w+j]->color.z,
                     (*hitpoints)[i*w+j]->flux.x, (*hitpoints)[i*w+j]->flux.y, (*hitpoints)[i*w+j]->flux.z,
                     (*hitpoints)[i*w+j]->fluxLight.x, (*hitpoints)[i*w+j]->fluxLight.y, (*hitpoints)[i*w+j]->fluxLight.z,
                     (*hitpoints)[i*w+j]->norm.x, (*hitpoints)[i*w+j]->norm.y, (*hitpoints)[i*w+j]->norm.z,
@@ -130,7 +128,7 @@ void SPPM::load(char *filename, int round) {
         for (int j = 0; j < w; j++){
             fscanf(file, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %d %lf\n",
                    &(*hitpoints)[i*w+j]->p.x, &(*hitpoints)[i*w+j]->p.y, &(*hitpoints)[i*w+j]->p.z,
-                   &(*hitpoints)[i*w+j]->weight.x, &(*hitpoints)[i*w+j]->weight.y, &(*hitpoints)[i*w+j]->weight.z,
+                   &(*hitpoints)[i*w+j]->color.x, &(*hitpoints)[i*w+j]->color.y, &(*hitpoints)[i*w+j]->color.z,
                    &(*hitpoints)[i*w+j]->flux.x, &(*hitpoints)[i*w+j]->flux.y, &(*hitpoints)[i*w+j]->flux.z,
                    &(*hitpoints)[i*w+j]->fluxLight.x, &(*hitpoints)[i*w+j]->fluxLight.y, &(*hitpoints)[i*w+j]->fluxLight.z,
                    &(*hitpoints)[i*w+j]->norm.x, &(*hitpoints)[i*w+j]->norm.y, &(*hitpoints)[i*w+j]->norm.z,

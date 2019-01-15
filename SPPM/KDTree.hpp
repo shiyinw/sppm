@@ -22,7 +22,7 @@ struct Ray;
 class HitPoint {
 public:
     Vec3d p;
-    Vec3d weight, flux, fluxLight;
+    Vec3d color, flux, fluxLight;
     Vec3d dir, norm;
     int n;
     BRDF brdf;
