@@ -14,7 +14,7 @@
 		847E47E821E5FBF30049F255 /* SPPM.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 847E47E321E5FBF20049F255 /* SPPM.cpp */; };
 		8481D14621EB1AAE000793AF /* Vec3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8481D14521EB1AAE000793AF /* Vec3d.cpp */; };
 		8481D14921EB1AF4000793AF /* KDTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8481D14821EB1AF3000793AF /* KDTree.cpp */; };
-		8481D15121EB658B000793AF /* Random.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8481D15021EB658B000793AF /* Random.cpp */; };
+		848B07FF21EE122E00C49342 /* AABB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 848B07FD21EE122E00C49342 /* AABB.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -45,8 +45,9 @@
 		8481D14521EB1AAE000793AF /* Vec3d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Vec3d.cpp; sourceTree = "<group>"; };
 		8481D14721EB1AF3000793AF /* KDTree.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = KDTree.hpp; sourceTree = "<group>"; };
 		8481D14821EB1AF3000793AF /* KDTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KDTree.cpp; sourceTree = "<group>"; };
-		8481D14A21EB618A000793AF /* Random.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Random.hpp; sourceTree = "<group>"; };
-		8481D15021EB658B000793AF /* Random.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Random.cpp; sourceTree = "<group>"; };
+		848B07FD21EE122E00C49342 /* AABB.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AABB.cpp; sourceTree = "<group>"; };
+		848B07FE21EE122E00C49342 /* AABB.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = AABB.hpp; sourceTree = "<group>"; };
+		84C7598421F23A83001D9F20 /* objects */ = {isa = PBXFileReference; lastKnownFileType = folder; path = objects; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +80,7 @@
 		8454D85921AABDD00045A126 /* SPPM */ = {
 			isa = PBXGroup;
 			children = (
+				84C7598421F23A83001D9F20 /* objects */,
 				847E47D721E5E6680049F255 /* BRDF.hpp */,
 				847E47CB21E5CF9C0049F255 /* Scene.hpp */,
 				847E47CA21E5CF9C0049F255 /* Scene.cpp */,
@@ -92,8 +94,8 @@
 				847E47E321E5FBF20049F255 /* SPPM.cpp */,
 				8481D14421EB1AAE000793AF /* Vec3d.hpp */,
 				8481D14521EB1AAE000793AF /* Vec3d.cpp */,
-				8481D14A21EB618A000793AF /* Random.hpp */,
-				8481D15021EB658B000793AF /* Random.cpp */,
+				848B07FE21EE122E00C49342 /* AABB.hpp */,
+				848B07FD21EE122E00C49342 /* AABB.cpp */,
 				8454D85A21AABDD00045A126 /* main.cpp */,
 			);
 			path = SPPM;
@@ -155,11 +157,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				848B07FF21EE122E00C49342 /* AABB.cpp in Sources */,
 				847E47CC21E5CF9C0049F255 /* Scene.cpp in Sources */,
 				8481D14621EB1AAE000793AF /* Vec3d.cpp in Sources */,
 				847E47CF21E5CFCE0049F255 /* Texture.cpp in Sources */,
 				847E47E821E5FBF30049F255 /* SPPM.cpp in Sources */,
-				8481D15121EB658B000793AF /* Random.cpp in Sources */,
 				8454D85B21AABDD00045A126 /* main.cpp in Sources */,
 				8481D14921EB1AF4000793AF /* KDTree.cpp in Sources */,
 				8412D4EE21E59F5200183531 /* Object.cpp in Sources */,

@@ -14,3 +14,5 @@ SPPM Framework: https://github.com/shizhouxing/SPPM
 Bezier + Texture: https://github.com/Trinkle23897/Computational-Graphics-THU-2018
 
 PPM: https://github.com/zhengpingzhou/PPM
+
+Denoising: http://rcm.cps.utexas.edu/
