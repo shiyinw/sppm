@@ -2,23 +2,25 @@
 //  HitPoint.cpp
 //  SPPM
 //
-//  Created by Sherilyn Wankins on 1/9/19.
+//  Created by Sherilyn Wankins on 11/29/18.
 //  Copyright © 2019 Sherilyn Wankins. All rights reserved.
 //
 
-#define ALPHA 0.7
+#define ALPHA 0.99
 #define EPSILON 1e-6
+#define INF 1e100
+#define MIN_RADIUS 1e-8
 
 #include "KDTree.hpp"
+#include <iostream>
+using namespace std;
 
 HitPointKDTreeNode* HitPointKDTree::build(int l, int r, int d) {
     HitPointKDTreeNode *p = new HitPointKDTreeNode;
-    p->min = Vec3d(1e100, 1e100, 1e100);
-    p->max = p->min * (-1);
     p->maxr2 = 0;
     for (int i = l; i <= r; ++i) {
-        p->min = min(p->min, hitpoints[i]->p);
-        p->max = max(p->max, hitpoints[i]->p);
+        p->aabb._min = min(p->aabb._min, hitpoints[i]->p);
+        p->aabb._max = max(p->aabb._max, hitpoints[i]->p);
         p->maxr2 = max(p->maxr2, hitpoints[i]->r2);
     }
     int m = (l + r) >> 1;
@@ -66,19 +68,21 @@ void HitPointKDTree::update(HitPointKDTreeNode * p, Vec3d photon, Vec3d color, V
     if (!p) return;
     double mind = 0;
     for(int i=0; i< 3; i++){
-        if (photon._p[i] > p->max._p[i]) mind += (photon._p[i] - p->max._p[i])*(photon._p[i] - p->max._p[i]);
-        if (photon._p[i] < p->min._p[i]) mind += (p->min._p[i] - photon._p[i])*(p->min._p[i] - photon._p[i]);
+        if (photon._p[i] > p->aabb._max._p[i]) mind += (photon._p[i] - p->aabb._max._p[i])*(photon._p[i] - p->aabb._max._p[i]);
+        if (photon._p[i] < p->aabb._min._p[i]) mind += (p->aabb._min._p[i] - photon._p[i])*(p->aabb._min._p[i] - photon._p[i]);
     }
     if (mind > p->maxr2) return;
     if (p->hitpoint->valid && (photon - p->hitpoint->p).norm2() <= p->hitpoint->r2) {
         HitPoint *hp = p->hitpoint;
-        double factor = (hp->n * ALPHA + ALPHA) / (hp->n * ALPHA + 1.);
+        double factor = (hp->n + ALPHA) / (hp->n + 1.);
+        if(hp->r2<MIN_RADIUS)
+            factor = 1;
         Vec3d dr = d - hp->norm * (2 * dot(d, hp->norm));
         double rho = hp->brdf.rho_d + hp->brdf.rho_s * pow(dot(dr, hp->dir), hp->brdf.phong_s);
         if (rho < 0) rho = 0;
         else if (rho > 1) rho = 1;
         hp->n++;
-        hp->r2 *= factor;
+        hp->r2 *= sqrt(factor);
         hp->flux = (hp->flux + hp->color * color * rho) * factor;
     }
     if (p->ls) update(p->ls, photon, color, d);
@@ -96,9 +100,9 @@ bool ObjectKDTreeNode::inside(Mesh *mesh) {
     Vec3d faceMax = mesh->aabb->_max;
     
     for(int i=0; i<3; i++){
-        if(!(faceMin._p[i] < max._p[i] || (faceMin._p[i] == max._p[i] && faceMin._p[i] == faceMax._p[i])))
+        if(!(faceMin._p[i] < aabb._max._p[i] || (faceMin._p[i] == aabb._max._p[i] && faceMin._p[i] == faceMax._p[i])))
             return false;
-        if(!(faceMax._p[i] > min._p[i] || (faceMax._p[i] == min._p[i] && faceMin._p[i] == faceMax._p[i])))
+        if(!(faceMax._p[i] > aabb._min._p[i] || (faceMax._p[i] == aabb._min._p[i] && faceMin._p[i] == faceMax._p[i])))
             return false;
     }
     return true;
@@ -106,20 +110,22 @@ bool ObjectKDTreeNode::inside(Mesh *mesh) {
 
 ObjectKDTreeNode* ObjectKDTree::build(int depth, int d, vector<Mesh*>* meshes, Vec3d min, Vec3d max) {
     ObjectKDTreeNode *p = new ObjectKDTreeNode;
-    p->min = min;
-    p->max = max;
+    p->aabb._min = min;
+    p->aabb._max = max;
     Vec3d maxL, minR;
-    if (d == 0) {
-        maxL = Vec3d((p->min.x + p->max.x) / 2, p->max.y, p->max.z);
-        minR = Vec3d((p->min.x + p->max.x) / 2, p->min.y, p->min.z);
-    }
-    else if (d == 1) {
-        maxL = Vec3d(p->max.x, (p->min.y + p->max.y) / 2, p->max.z);
-        minR = Vec3d(p->min.x, (p->min.y + p->max.y) / 2, p->min.z);
-    }
-    else {
-        maxL = Vec3d(p->max.x, p->max.y, (p->min.z + p->max.z) / 2);
-        minR = Vec3d(p->min.x, p->min.y, (p->min.z + p->max.z) / 2);
+    switch(d){
+        case 0:
+            maxL = Vec3d((p->aabb._min.x + p->aabb._max.x) / 2, p->aabb._max.y, p->aabb._max.z);
+            minR = Vec3d((p->aabb._min.x + p->aabb._max.x) / 2, p->aabb._min.y, p->aabb._min.z);
+            break;
+        case 1:
+            maxL = Vec3d(p->aabb._max.x, (p->aabb._min.y + p->aabb._max.y) / 2, p->aabb._max.z);
+            minR = Vec3d(p->aabb._min.x, (p->aabb._min.y + p->aabb._max.y) / 2, p->aabb._min.z);
+            break;
+        case 2:
+            maxL = Vec3d(p->aabb._max.x, p->aabb._max.y, (p->aabb._min.z + p->aabb._max.z) / 2);
+            minR = Vec3d(p->aabb._min.x, p->aabb._min.y, (p->aabb._min.z + p->aabb._max.z) / 2);
+            break;
     }
     p->meshes = new vector<Mesh*>;
     for (auto face : *meshes)
@@ -175,23 +181,6 @@ ObjectKDTree::ObjectKDTree(vector<Mesh*>* meshes) {
     getFaces(root, this->meshes);
 }
 
-double ObjectKDTree::getCuboidIntersection(ObjectKDTreeNode *p, Ray ray) {
-    if (!(ray.s >= p->min && ray.s <= p->max)) { // outside
-        double t = -1e100;
-        if (fabs(ray.d.x) > 0)
-            t = max(t, min((p->min.x - ray.s.x) / ray.d.x, (p->max.x - ray.s.x) / ray.d.x));
-        if (fabs(ray.d.y) > 0)
-            t = max(t, min((p->min.y - ray.s.y) / ray.d.y, (p->max.y - ray.s.y) / ray.d.y));
-        if (fabs(ray.d.z) > 0)
-            t = max(t, min((p->min.z - ray.s.z) / ray.d.z, (p->max.z - ray.s.z) / ray.d.z));
-        if (t < -EPSILON) return 1e100;
-        Vec3d pp = ray.s + ray.d * t;
-        if (!(pp >= p->min && pp <= p->max)) return 1e100;
-        return t;
-    }
-    else return -1e100;
-}
-
 void ObjectKDTree::getIntersection(ObjectKDTreeNode *p, Ray ray, Mesh* &nextMesh, double &distance, Vec3d &norm) {
     for (int i = 0; i < p->meshes->size(); ++i) {
         pair<double, Vec3d> r = (*p->meshes)[i]->intersect(ray);
@@ -202,21 +191,18 @@ void ObjectKDTree::getIntersection(ObjectKDTreeNode *p, Ray ray, Mesh* &nextMesh
             norm = r.second;
         }
     }
-    double tl = p->ls ? getCuboidIntersection(p->ls, ray) : 1e100;
-    double tr = p->rs ? getCuboidIntersection(p->rs, ray) : 1e100;
+    double tl = p->ls ? p->ls->aabb.intersect(ray) : 1e100;
+    double tr = p->rs ? p->rs->aabb.intersect(ray) : 1e100;
     
     if(distance<=tr && distance<=tl)
         return;
     
     if (tl < tr) {
-        if (p->ls) getIntersection(p->ls, ray, nextMesh, distance, norm);
-        if (distance <= tr) return;
-        if (p->rs) getIntersection(p->rs, ray, nextMesh, distance, norm);
+        getIntersection(p->ls, ray, nextMesh, distance, norm);
+        if (tr<distance) getIntersection(p->rs, ray, nextMesh, distance, norm);
     }
     else {
-        if (p->rs) getIntersection(p->rs, ray, nextMesh, distance, norm);
-        if (distance <= tl) return;
-        if (p->ls) getIntersection(p->ls, ray, nextMesh, distance, norm);
+        getIntersection(p->rs, ray, nextMesh, distance, norm);
+        if (tl<distance) getIntersection(p->ls, ray, nextMesh, distance, norm);
     }
 }
-

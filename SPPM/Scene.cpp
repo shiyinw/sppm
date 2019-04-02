@@ -2,7 +2,7 @@
 //  Scene.cpp
 //  SPPM
 //
-//  Created by Sherilyn Wankins on 1/9/19.
+//  Created by Sherilyn Wankins on 11/1/18.
 //  Copyright © 2019 Sherilyn Wankins. All rights reserved.
 //
 
@@ -11,7 +11,6 @@
 #define SEARCH_RADIUS 1e-4
 
 #include "Scene.hpp"
-#include "Random.hpp"
 #include <iostream>
 
 struct Params{
@@ -19,13 +18,13 @@ struct Params{
 };
 
 void Scene::addObject(Object* object) {
-    for (int i = 0; i < object->numFaces; ++i)
+    for (int i = 0; i < object->nm; ++i)
         object->meshes[i]->object = object;
     objects.push_back(object);
 }
 
 Ray Scene::generateRay(long long i) {
-    double alpha = randomdist(0, 2 * M_PI, 0, i);
+    double alpha = double(rand())*2*M_PI/RAND_MAX;
     Vec3d s = sourceP +  Vec3d(cos(alpha), 0, sin(alpha)) * sourceR;
     Vec3d d = sampleReflectedRay(sourceN, 0, i);
     Ray ray;
@@ -40,8 +39,8 @@ Vec3d Scene::sampleReflectedRay(Vec3d norm, int depth, long long i, double s) {
     u.normalize();
     Vec3d v = cross(norm, u);
     v.normalize();
-    double theta = randomdist(0, 2 * M_PI, 2 * depth + 1, i);
-    double phi = asin(pow(randomdist(0, 1, 2 * depth + 2, i), 1. / (s + 1)));
+    double theta = double(rand())*2.*M_PI/RAND_MAX;
+    double phi = asin(double(rand())/RAND_MAX);
     return (norm * cos(phi) + (u * cos(theta) + v * sin(theta)) * sin(phi)).normalize();
 }
 
@@ -60,10 +59,10 @@ void Scene::rayTrace(const Ray &ray, const Vec3d &color, int depth, HitPoint *hp
     
     // russian roulette
     double s = BRDFs[nextMesh->brdf].specular + BRDFs[nextMesh->brdf].diffuse + BRDFs[nextMesh->brdf].refraction;
-    double action = randomdist(0, 1) * s;
+    double action = double(rand())/RAND_MAX * s;
     Vec3d dr = ray.d - norm * (2 * dot(ray.d, norm));
     
-    // specular
+    // specular 反射
     if (BRDFs[nextMesh->brdf].specular > 0 && action <= BRDFs[nextMesh->brdf].specular) {
         Ray ray;
         ray.d = dr;
@@ -75,6 +74,7 @@ void Scene::rayTrace(const Ray &ray, const Vec3d &color, int depth, HitPoint *hp
     
     // diffuse
     if (BRDFs[nextMesh->brdf].diffuse > 0 && action <= BRDFs[nextMesh->brdf].diffuse) {
+        // stop ray tracing
         hp->p = p;
         hp->color = color * nextMesh->texture->query(p) * s;
         hp->fluxLight = hp->fluxLight + hp->color * (nextMesh->brdf == LIGHT);
@@ -92,22 +92,15 @@ void Scene::rayTrace(const Ray &ray, const Vec3d &color, int depth, HitPoint *hp
     
     // refraction
     if (BRDFs[nextMesh->brdf].refraction > 0 && action <= BRDFs[nextMesh->brdf].refraction) {
-        if (!nextMesh->object->center)
-            nextMesh->object->calcCenter();
-        bool incoming = dot(*(nextMesh->object)->center - p, norm) < 0;
-        double refractiveIndex = BRDFs[nextMesh->brdf].refractiveIndex;
-        if (!incoming) refractiveIndex = 1. / refractiveIndex;
+        double refractiveIndex = dot(nextMesh->object->aabb->_center - p, norm) < 0? BRDFs[nextMesh->brdf].refractiveIndex: 1. / BRDFs[nextMesh->brdf].refractiveIndex;
         double cosThetaIn = -dot(ray.d, norm);
         double cosThetaOut2 = 1 - (1 - cosThetaIn*cosThetaIn) / refractiveIndex/refractiveIndex;
         
         if (cosThetaOut2 >= -EPSILON) {
             double cosThetaOut = sqrt(cosThetaOut2);
-            
-            // schlick's approximation
             double R0 = ((1 - refractiveIndex) / (1 + refractiveIndex))*((1 - refractiveIndex) / (1 + refractiveIndex));
-            double cosTheta = incoming ? cosThetaIn : cosThetaOut;
+            double cosTheta = dot(nextMesh->object->aabb->_center - p, norm) < 0 ? cosThetaIn : cosThetaOut;
             double R = R0 + (1 - R0) * pow(1 - cosTheta, 5);
-            
             
             if (((double) rand() / (RAND_MAX)) <= R){
                 Ray rayout;
@@ -122,7 +115,7 @@ void Scene::rayTrace(const Ray &ray, const Vec3d &color, int depth, HitPoint *hp
                 rayTrace(rayout, color * nextMesh->texture->query(p) * s, depth + 1, hp);
             }
         }
-        else { // total internal reflection
+        else {
             Ray rayout;
             rayout.d = dr;
             rayout.s = p + rayout.d * EPSILON;
@@ -140,15 +133,16 @@ void Scene::photonTrace(const Ray &ray, const Vec3d &color, int depth, long long
     //search next mesh through KD Tree
     objectKDTree->getIntersection(objectKDTree->root, ray, nextMesh, distance, norm);
     
-    if (!nextMesh || distance < SEARCH_RADIUS) return;
+    if (!nextMesh || distance < SEARCH_RADIUS)
+        return;
     Vec3d p = ray.s + ray.d * distance;
     
     // russian roulette
     double s = BRDFs[nextMesh->brdf].specular + BRDFs[nextMesh->brdf].diffuse + BRDFs[nextMesh->brdf].refraction;
-    double action = randomdist(0, 1) * s;
+    double action = double(rand())/RAND_MAX * s;
     Vec3d dr = ray.d - norm * (2 * dot(ray.d, norm));
     
-    // specular
+    // specular reflection
     if (BRDFs[nextMesh->brdf].specular > 0 && action <= BRDFs[nextMesh->brdf].specular) {
         Ray ray;
         ray.d = dr;
@@ -158,9 +152,9 @@ void Scene::photonTrace(const Ray &ray, const Vec3d &color, int depth, long long
     }
     action -= BRDFs[nextMesh->brdf].specular;
     
-    // diffuse
+    // diffuse reflection
     if (BRDFs[nextMesh->brdf].diffuse > 0 && action <= BRDFs[nextMesh->brdf].diffuse) {
-        double a = randomdist();
+        double a = double(rand())/RAND_MAX;
         // phong specular
         if (((double) rand() / (RAND_MAX)) <= BRDFs[nextMesh->brdf].rho_s) {
             Ray rayout;
@@ -186,9 +180,7 @@ void Scene::photonTrace(const Ray &ray, const Vec3d &color, int depth, long long
     
     // refraction
     if (BRDFs[nextMesh->brdf].refraction > 0 && action <= BRDFs[nextMesh->brdf].refraction) {
-        if (!nextMesh->object->center)
-            nextMesh->object->calcCenter();
-        bool incoming = dot(*(nextMesh->object)->center - p, norm) < 0;
+        bool incoming = dot(nextMesh->object->aabb->_center - p, norm) < 0;
         double refractiveIndex = BRDFs[nextMesh->brdf].refractiveIndex;
         if (!incoming) refractiveIndex = 1. / refractiveIndex;
         double cosThetaIn = -dot(ray.d, norm);

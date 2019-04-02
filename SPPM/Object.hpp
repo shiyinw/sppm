@@ -2,16 +2,19 @@
 //  Object.hpp
 //  SPPM
 //
-//  Created by Sherilyn Wankins on 1/9/19.
+//  Created by Sherilyn Wankins on 11/3/18.
 //  Copyright © 2019 Sherilyn Wankins. All rights reserved.
 //
 
 #ifndef Object_hpp
 #define Object_hpp
 
+#define INF 1e100
+
 #include <stdio.h>
 #include "Texture.hpp"
 #include "BRDF.hpp"
+#include "AABB.hpp"
 
 using namespace std;
 
@@ -21,58 +24,6 @@ class TriMesh;
 class SphereMesh;
 class CircleMesh;
 class Sphere;
-struct Ray;
-
-// AABB box
-class AABB{
-public:
-    Vec3d _min;
-    Vec3d _max;
-    Vec3d _center;
-    // triangle mesh
-    AABB(Vec3d a, Vec3d b, Vec3d c){
-        _min = Vec3d(std::min(a.x, std::min(b.x, c.x)), std::min(a.y, std::min(b.y, c.y)), std::min(a.z, std::min(b.z, c.z)));
-        _max = Vec3d(std::max(a.x, std::max(b.x, c.x)), std::max(a.y, std::max(b.y, c.y)), std::max(a.z, std::max(b.z, c.z)));
-        _center = (_min+_max)/2;
-    }
-    
-    // 3d ball and 2d ball
-    AABB(Vec3d c, double r, bool ball){
-        if(ball){
-            _max = Vec3d(c.x + r, c.y + r, c.z + r);
-            _min = Vec3d(c.x - r, c.y - r, c.z - r);
-        }
-        else{
-            _max = Vec3d(c.x + r, c.y + r, c.z);
-            _min = Vec3d(c.x - r, c.y - r, c.z);
-        }
-         _center = c;
-    }
-    
-    // 3d cube and 2d square
-    AABB(Vec3d min, Vec3d max){
-        _max = max;
-        _min = min;
-        _center = (_min+_max)/2;
-    }
-    
-    bool inside(Vec3d kdmin, Vec3d kdmax) {
-        for(int i=0; i<3; i++){
-            if(!(_min._p[i] < kdmax._p[i] || (_min._p[i] == kdmax._p[i] && _min._p[i] == _max._p[i])))
-                return false;
-            if(!(_max._p[i] > kdmin._p[i] || (_max._p[i] == kdmin._p[i] && _min._p[i] == _max._p[i])))
-                return false;
-        }
-        return true;
-    }
-    
-    void print(){
-        printf("AABB\n");
-        _min.print();
-        _center.print();
-        _max.print();
-    }
-};
 
 class Mesh {
 public:
@@ -82,25 +33,26 @@ public:
     AABB *aabb;
     virtual pair<double, Vec3d> intersect(Ray ray) = 0;
     virtual void updateAABB() = 0;
+    Mesh(){
+        aabb = new AABB();
+    }
 };
 
-class CylinderMesh : public Mesh{
+class WaterDropMesh : public Mesh{
 public:
-    Vec3d *c;
-    double r, h;
-    CylinderMesh(Vec3d *c, double r, double h, TextureMapper *image, int brdf=0){
-        this->c = c;
-        this->r = r;
-        this->h = h;
-        this->texture = image;
+    Vec3d position;
+    double a, b;
+    WaterDropMesh(Vec3d pos, double xs, double ys, TextureMapper *texture = nullptr, int brdf = 0){
+        this->position = pos;
+        this->a = xs;
+        this->b = ys;
+        this->texture = texture;
         this->brdf = brdf;
-        this->aabb = new AABB(Vec3d(c->x-r, c->y-r, c->z), Vec3d(c->x+r, c->y+r, c->z+h));
     }
     pair<double, Vec3d> intersect(Ray ray);
-    double intersectPlane(Ray ray);
     void updateAABB(){
-        this->aabb = new AABB(Vec3d(this->c->x - this->r, this->c->y - this->r, this->c->z),
-                              Vec3d(this->c->x + this->r, this->c->y + this->r, this->c->z + this->h));
+        aabb->_min = position + Vec3d(-0.5*a, -0.5*a, 0);
+        aabb->_min = position + Vec3d(0.5*a, 0.5*a, b);
     }
 };
 
@@ -139,40 +91,19 @@ public:
     }
 };
 
-class CircleMesh : public Mesh {
-public:
-    Vec3d c;
-    double r;
-    CircleMesh(Vec3d c, double r, TextureMapper *texture, int brdf) {
-        this->c = c;
-        this->r = r;
-        this->texture = texture;
-        this->brdf = brdf;
-        this->aabb = new AABB(c, r, false);
-    }
-    pair<double, Vec3d> intersect(Ray ray);
-    void updateAABB(){
-        this->aabb = new AABB(c, r, false);
-    }
-};
-
 class Object {
 public:
     Vec3d** vertexes;
-    Vec3d* center;
     Mesh** meshes;
     AABB* aabb;
-    int numVertexes, numFaces;
+    int nv, nm;
     Object() {
         aabb = new AABB(Vec3d(-1e100, -1e100, -1e100), Vec3d(1e100, 1e100, 1e100));
-         center = nullptr;
     }
     void importPly(char *filename, TextureMapper *texture, int brdf);
     void importObj(char *filename, TextureMapper *texture, int brdf);
     void updateAABB();
-    void calcCenter();
     void locate(Vec3d locate_min, Vec3d locate_max);
-    void rotXZ(double theta);
 };
 
 class Sphere : public Object {
@@ -180,15 +111,8 @@ public:
     Vec3d c;
     double r;
     Sphere(Vec3d c, double r, TextureMapper *texture, int brdf);
-    void updateAABB(){
-        this->aabb->_center = this->c;
-    }
 };
 
-struct Ray {
-    Vec3d s; //source
-    Vec3d d; //direction
-};
 
 
 #endif /* Object_hpp */

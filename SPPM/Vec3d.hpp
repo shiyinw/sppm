@@ -2,13 +2,23 @@
 //  Vector.hpp
 //  SPPM
 //
-//  Created by Sherilyn Wankins on 1/9/19.
+//  Created by Sherilyn Wankins on 11/1/18.
 //  Copyright © 2019 Sherilyn Wankins. All rights reserved.
 //
 
 #ifndef Vec3d_hpp
 #define Vec3d_hpp
-#include "Random.hpp"
+
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <cassert>
+#include <cstdlib>
+#include <cmath>
+#include <map>
+#include <ctime>
+#include <random>
+#include <stdexcept>
 
 class Vec3d {
 public:

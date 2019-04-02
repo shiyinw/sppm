@@ -2,7 +2,7 @@
 //  Texture.cpp
 //  SPPM
 //
-//  Created by Sherilyn Wankins on 1/9/19.
+//  Created by Sherilyn Wankins on 12/10/18.
 //  Copyright © 2019 Sherilyn Wankins. All rights reserved.
 //
 

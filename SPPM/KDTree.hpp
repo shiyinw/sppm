@@ -2,11 +2,12 @@
 //  HitPoint.hpp
 //  SPPM
 //
-//  Created by Sherilyn Wankins on 1/9/19.
+//  Created by Sherilyn Wankins on 11/29/18.
 //  Copyright © 2019 Sherilyn Wankins. All rights reserved.
 //
 
-#define RADIUS 1e-5
+#define RADIUS 3e-6
+#define INF 1e100
 
 #ifndef KDTree_hpp
 #define KDTree_hpp
@@ -24,7 +25,7 @@ public:
     Vec3d p;
     Vec3d color, flux, fluxLight;
     Vec3d dir, norm;
-    int n;
+    double n;
     BRDF brdf;
     double r2;
     bool valid;
@@ -39,13 +40,17 @@ public:
 class HitPointKDTreeNode {
 public:
     HitPoint *hitpoint;
-    Vec3d min, max;
+    AABB aabb;
     double maxr2;
     HitPointKDTreeNode *ls, *rs;
+    HitPointKDTreeNode(){
+        aabb._min = Vec3d(INF, INF, INF);
+        aabb._max = Vec3d(-INF, -INF, -INF);
+    }
 };
 
 class HitPointKDTree {
-    int n;
+    double n;
     HitPoint** hitpoints;
     HitPointKDTreeNode* build(int l, int r, int d);
     void del(HitPointKDTreeNode *p);
@@ -58,11 +63,15 @@ public:
 
 class ObjectKDTreeNode {
 public:
-    Vec3d min, max;
+    AABB aabb;
     vector<Mesh*>* meshes;
     ObjectKDTreeNode *ls, *rs;
     int l, r;
     bool inside(Mesh *mesh);
+    ObjectKDTreeNode(){
+        aabb._min = Vec3d(INF, INF, INF);
+        aabb._max = Vec3d(-INF, -INF, -INF);
+    }
 };
 
 class ObjectKDTree {
