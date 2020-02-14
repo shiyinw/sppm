@@ -1,6 +1,11 @@
 # ComputerGraphics
 Stochastic Progressive Photon Mapping
 
+![](report/1.png)
+
+
+![](report/2.png)
+
 
 
 ## Reference
